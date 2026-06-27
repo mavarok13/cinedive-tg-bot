@@ -1,0 +1,76 @@
+start:
+  fallback_name: "there"
+  welcome_back: "Welcome back, <b>{name}</b>. Choose what to do next."
+  onboarding_intro: "Hi, <b>{name}</b>. Pick a few favorite genres so CineDive can start learning your taste."
+
+menu:
+  title: "Main menu"
+  placeholder: "Choose an action"
+  buttons:
+    recommend: "🎲 Recommend"
+    wishlist: "❤️ Wishlist"
+    search: "🔎 Search"
+    profile: "👤 Profile"
+
+navigation:
+  back: "⬅️ Back"
+
+onboarding:
+  pick_genres: "Pick a few favorite genres so CineDive can start learning your taste."
+  done: "Done"
+  saved: "Favorite genres saved."
+  choose_at_least_one: "Choose at least one genre."
+
+errors:
+  use_start: "Use /start first."
+  unknown_genre: "Unknown genre."
+
+profile:
+  create_first: "Use /start to create your CineDive profile."
+  unknown_name: "unknown"
+  title: "<b>Your CineDive profile</b>"
+  name: "Name: {name}"
+  favorite_genres: "Favorite genres: {genres}"
+  genres_empty: "not selected yet"
+
+search:
+  ask_query: "Send a movie or TV show title to search."
+  placeholder: "Search UI is ready. TMDB lookup and result cards will be wired in the next MVP stage."
+
+recommendations:
+  placeholder: "Recommendations are reserved for the next stage: mood check, genre match, and watched/hidden filters."
+
+wishlist:
+  placeholder: "Wishlist storage is ready. The list UI will be implemented after media cards."
+
+rating:
+  placeholder: "Rating flow will be implemented after media cards."
+
+watched:
+  placeholder: "Watched flow will ask for a 1-10 rating in the next stage."
+
+soundtrack:
+  placeholder: "Soundtrack links will use external search URLs, no music files."
+
+media_card:
+  to_wishlist: "❤️ To wishlist"
+  watched: "✅ Watched"
+  rate: "⭐ Rate"
+  not_now: "🙈 Not now"
+  next: "🎲 Next"
+  soundtrack: "🎵 Soundtrack"
+
+genres:
+  movie:
+    action: "Action"
+    adventure: "Adventure"
+    animation: "Animation"
+    comedy: "Comedy"
+    crime: "Crime"
+    drama: "Drama"
+    fantasy: "Fantasy"
+    horror: "Horror"
+    mystery: "Mystery"
+    romance: "Romance"
+    sci_fi: "Sci-Fi"
+    thriller: "Thriller"

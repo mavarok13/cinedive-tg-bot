@@ -67,3 +67,32 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.python-version
+.venv/
+venv/
+ENV/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+dist/
+*.egg-info/
+node_modules/
+
+# Local configuration
+.env
+.env.*
+!.env.example
+
+# Agent/runtime local files
+.opencode/
+.claude/
+sessions/
+*.session
+*.session.json

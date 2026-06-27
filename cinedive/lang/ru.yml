@@ -1,0 +1,76 @@
+start:
+  fallback_name: "друг"
+  welcome_back: "С возвращением, <b>{name}</b>. Выберите, что делать дальше."
+  onboarding_intro: "Привет, <b>{name}</b>. Выберите несколько любимых жанров, чтобы CineDive начал понимать ваш вкус."
+
+menu:
+  title: "Главное меню"
+  placeholder: "Выберите действие"
+  buttons:
+    recommend: "🎲 Рекомендации"
+    wishlist: "❤️ Избранное"
+    search: "🔎 Поиск"
+    profile: "👤 Профиль"
+
+navigation:
+  back: "⬅️ Назад"
+
+onboarding:
+  pick_genres: "Выберите несколько любимых жанров, чтобы CineDive начал понимать ваш вкус."
+  done: "Готово"
+  saved: "Любимые жанры сохранены."
+  choose_at_least_one: "Выберите хотя бы один жанр."
+
+errors:
+  use_start: "Сначала используйте /start."
+  unknown_genre: "Неизвестный жанр."
+
+profile:
+  create_first: "Используйте /start, чтобы создать профиль CineDive."
+  unknown_name: "неизвестно"
+  title: "<b>Ваш профиль CineDive</b>"
+  name: "Имя: {name}"
+  favorite_genres: "Любимые жанры: {genres}"
+  genres_empty: "пока не выбраны"
+
+search:
+  ask_query: "Отправьте название фильма или сериала для поиска."
+  placeholder: "Интерфейс поиска готов. Поиск в TMDB и карточки результатов будут подключены на следующем этапе MVP."
+
+recommendations:
+  placeholder: "Рекомендации запланированы на следующий этап: настроение, совпадение жанров и фильтры просмотренного/скрытого."
+
+wishlist:
+  placeholder: "Хранилище избранного готово. Интерфейс списка будет добавлен после карточек медиа."
+
+rating:
+  placeholder: "Оценки будут добавлены после карточек медиа."
+
+watched:
+  placeholder: "На следующем этапе просмотренное будет запрашивать оценку от 1 до 10."
+
+soundtrack:
+  placeholder: "Саундтреки будут открываться внешними ссылками для поиска, без музыкальных файлов."
+
+media_card:
+  to_wishlist: "❤️ В избранное"
+  watched: "✅ Просмотрено"
+  rate: "⭐ Оценить"
+  not_now: "🙈 Не сейчас"
+  next: "🎲 Дальше"
+  soundtrack: "🎵 Саундтрек"
+
+genres:
+  movie:
+    action: "Боевик"
+    adventure: "Приключения"
+    animation: "Анимация"
+    comedy: "Комедия"
+    crime: "Криминал"
+    drama: "Драма"
+    fantasy: "Фэнтези"
+    horror: "Ужасы"
+    mystery: "Детектив"
+    romance: "Мелодрама"
+    sci_fi: "Фантастика"
+    thriller: "Триллер"

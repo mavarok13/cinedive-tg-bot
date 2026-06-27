@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-cinedive}
+      POSTGRES_USER: ${POSTGRES_USER:-cinedive}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cinedive}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cinedive} -d ${POSTGRES_DB:-cinedive}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  bot:
+    build: .
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-cinedive}:${POSTGRES_PASSWORD:-cinedive}@postgres:5432/${POSTGRES_DB:-cinedive}
+    ports:
+      - "${WEB_SERVER_PORT:-8080}:${WEB_SERVER_PORT:-8080}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
