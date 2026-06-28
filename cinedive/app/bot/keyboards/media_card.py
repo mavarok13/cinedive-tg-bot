@@ -29,7 +29,10 @@ def media_card_keyboard(
                 ),
             ],
             [
-                InlineKeyboardButton(text=t(locale, "media_card.next"), callback_data="recommend:next"),
+                InlineKeyboardButton(
+                    text=t(locale, "media_card.next"),
+                    callback_data=f"recommend:next:{media_id}",
+                ),
                 InlineKeyboardButton(
                     text=t(locale, "media_card.soundtrack"),
                     callback_data=f"soundtrack:{media_id}",

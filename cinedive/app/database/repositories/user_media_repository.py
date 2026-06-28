@@ -27,6 +27,18 @@ class UserMediaRepository:
         await self._session.flush()
         return user_media
 
+    async def hide_temporarily(
+        self,
+        *,
+        user_id: int,
+        media_id: int,
+        hidden_until: datetime,
+    ) -> UserMedia:
+        user_media = await self.set_status(user_id=user_id, media_id=media_id, status="hidden")
+        user_media.temporary_hidden_until = hidden_until
+        await self._session.flush()
+        return user_media
+
     async def remove(self, *, user_id: int, media_id: int) -> None:
         statement = delete(UserMedia).where(
             UserMedia.user_id == user_id,

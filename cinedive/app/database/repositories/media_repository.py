@@ -1,9 +1,10 @@
 from dataclasses import dataclass
+from datetime import datetime
 
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from cinedive.app.database.models import MediaGenre, MediaItem, MediaTranslation
+from cinedive.app.database.models import Genre, MediaGenre, MediaItem, MediaTranslation, UserMedia
 
 
 @dataclass(frozen=True)
@@ -17,6 +18,12 @@ class MediaCardData:
     runtime_minutes: int | None
     tmdb_rating: float | None
     tmdb_vote_count: int | None
+
+
+@dataclass(frozen=True)
+class RecommendationCandidate:
+    card: MediaCardData
+    genre_external_ids: set[int]
 
 
 class MediaRepository:
@@ -63,6 +70,46 @@ class MediaRepository:
             tmdb_rating=media.tmdb_rating,
             tmdb_vote_count=media.tmdb_vote_count,
         )
+
+    async def list_recommendation_candidates(
+        self,
+        *,
+        user_id: int,
+        language_code: str,
+        content_type: str,
+        now: datetime,
+        max_runtime_minutes: int | None = None,
+        limit: int = 100,
+    ) -> list[RecommendationCandidate]:
+        statement = select(MediaItem)
+        if content_type in {"movie", "tv"}:
+            statement = statement.where(MediaItem.media_type == content_type)
+        if max_runtime_minutes is not None:
+            statement = statement.where(
+                (MediaItem.runtime_minutes.is_(None))
+                | (MediaItem.runtime_minutes <= max_runtime_minutes)
+            )
+        statement = statement.order_by(
+            MediaItem.tmdb_rating.desc().nullslast(),
+            MediaItem.tmdb_vote_count.desc().nullslast(),
+        ).limit(limit)
+
+        media_items = list(await self._session.scalars(statement))
+        candidates: list[RecommendationCandidate] = []
+        for media in media_items:
+            user_media = await self._get_user_media(user_id=user_id, media_id=media.id)
+            if _is_excluded_user_media(user_media, now):
+                continue
+            card = await self.get_card(media_id=media.id, language_code=language_code)
+            if card is None:
+                continue
+            candidates.append(
+                RecommendationCandidate(
+                    card=card,
+                    genre_external_ids=await self._genre_external_ids(media_id=media.id),
+                )
+            )
+        return candidates
 
     async def upsert_media(
         self,
@@ -135,8 +182,30 @@ class MediaRepository:
         )
         return await self._session.scalar(statement)
 
+    async def _genre_external_ids(self, *, media_id: int) -> set[int]:
+        statement = select(Genre.external_id).join(MediaGenre).where(MediaGenre.media_id == media_id)
+        result = await self._session.scalars(statement)
+        return set(result)
+
+    async def _get_user_media(self, *, user_id: int, media_id: int) -> UserMedia | None:
+        statement = select(UserMedia).where(
+            UserMedia.user_id == user_id,
+            UserMedia.media_id == media_id,
+        )
+        return await self._session.scalar(statement)
+
     async def replace_genres(self, *, media_id: int, genre_ids: list[int]) -> None:
         await self._session.execute(delete(MediaGenre).where(MediaGenre.media_id == media_id))
         for genre_id in dict.fromkeys(genre_ids):
             self._session.add(MediaGenre(media_id=media_id, genre_id=genre_id))
         await self._session.flush()
+
+
+def _is_excluded_user_media(user_media: UserMedia | None, now: datetime) -> bool:
+    if user_media is None:
+        return False
+    if user_media.status in {"watched", "ignored"}:
+        return True
+    if user_media.status == "hidden":
+        return user_media.temporary_hidden_until is None or user_media.temporary_hidden_until > now
+    return False

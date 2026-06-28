@@ -80,6 +80,8 @@ The `media_items` table has a unique constraint on `(source, external_id, media_
 11. The handler renders a localized media card with poster, metadata, overview, and existing action callbacks.
 12. Wishlist callbacks store or remove `user_media` rows with `wishlist` status and can reopen persisted media cards.
 13. Watched and rating callbacks use `RatingStates` to ask for a 1-10 rating and persist `watched`, `rating`, and `rated_at` through `UserMediaRepository`.
+14. Recommend checks for an active 24-hour mood session, asks for a mood preset when needed, and renders a scored recommendation from persisted media.
+15. Next/Hide callbacks temporarily hide media for the mood window so recommendation candidates rotate.
 
 ## MVP Data Flow
 
@@ -101,9 +103,10 @@ Wishlist and rating flow:
 Recommendation flow:
 
 1. Handler checks active mood session through mood repository/service.
-2. If needed, handler asks temporary mood questions.
-3. `RecommendationService` loads favorite genres, excludes watched/hidden media, and ranks candidates with a simple score.
-4. Handler renders the next media card.
+2. If needed, handler asks a temporary mood preset question and stores the selected mood separately from favorite genres.
+3. `MediaRepository` loads persisted candidate cards while excluding watched, ignored, and currently hidden media.
+4. `RecommendationService` ranks candidates with a simple non-ML score from favorite genre match, mood genre match, TMDB rating, and vote count.
+5. Handler renders the next media card.
 
 Soundtrack flow:
 

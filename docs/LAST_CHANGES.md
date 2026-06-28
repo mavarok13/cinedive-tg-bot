@@ -2,6 +2,15 @@
 
 ## 2026-06-28
 
+- Implemented Stage 4 mood sessions and simple recommendations.
+- Added 24-hour mood presets, active mood session persistence, recommendation candidate loading from persisted media, non-ML scoring, Next, and temporary Hide behavior.
+- Updated `MOOD_SESSION_TTL_HOURS` default/docs from 48 to 24 hours to match the roadmap.
+- Updated English/Russian UI copy and persistent docs for Stage 4 completion.
+
+Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. `py -3.11 -m ruff check .` was skipped because Ruff is not installed in the local Python 3.11 environment.
+
+## 2026-06-28
+
 - Implemented Stage 3 wishlist, watched, and rating flows.
 - Added reusable persisted media-card rendering, wishlist/rating inline keyboards, wishlist add/list/open/remove handlers, and watched/rating FSM handlers.
 - Extended repositories to load persisted media-card data, delete user-media rows, and save watched ratings with `rated_at`.

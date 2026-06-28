@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     tmdb_image_base_url: str = "https://image.tmdb.org/t/p/w500"
     default_language: str = "en-US"
     log_level: str = "INFO"
-    mood_session_ttl_hours: int = Field(default=48, ge=1)
+    mood_session_ttl_hours: int = Field(default=24, ge=1)
     webhook_base_url: str | None = None
     webhook_path: str = "/telegram/webhook"
     webhook_secret: SecretStr | None = None

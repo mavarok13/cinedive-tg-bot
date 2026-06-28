@@ -41,7 +41,7 @@ Primary environment variables:
 - `DEFAULT_LANGUAGE`: default TMDB language, default `en-US`.
 - `DATABASE_ECHO`: SQLAlchemy SQL echo flag.
 - `LOG_LEVEL`: Python logging level.
-- `MOOD_SESSION_TTL_HOURS`: mood session lifetime, default `48`.
+- `MOOD_SESSION_TTL_HOURS`: mood session lifetime, default `24`.
 - `BOT_MODE`: `webhook` or `polling`. Production `APP_ENV=production` requires `webhook`.
 - `WEBHOOK_BASE_URL`: public HTTPS base URL used to register the Telegram webhook.
 - `WEBHOOK_PATH`: webhook path served by aiohttp, default `/telegram/webhook`.

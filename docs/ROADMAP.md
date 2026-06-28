@@ -37,7 +37,9 @@ Status: complete.
 
 ## Stage 4: Recommendations And Mood Sessions
 
-- Add mood session questions when no active session exists or it is older than 48 hours.
+Status: complete.
+
+- Add mood session questions when no active session exists or it is older than 24 hours.
 - Store temporary mood preferences separately from favorite genres.
 - Implement simple recommendation scoring from genre match, TMDB rating, and popularity.
 - Exclude watched and temporarily hidden media.

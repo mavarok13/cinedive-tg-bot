@@ -2,6 +2,14 @@
 
 ## 2026-06-28
 
+- Implemented Stage 4 recommendations in `cinedive/app/bot/handlers/recommendations.py`, including mood preset selection, active mood-session reuse, Next, and temporary Hide callbacks.
+- Added `cinedive/app/bot/keyboards/mood.py` and expanded `MoodService`, `MediaRepository`, `UserMediaRepository`, and `RecommendationService` for 24-hour mood sessions, recommendation candidates, temporary hidden exclusions, and non-ML scoring.
+- Updated `MOOD_SESSION_TTL_HOURS` default and `.env.example` from 48 to 24 hours.
+- Updated localized English/Russian copy, README, AGENTS, and persistent docs for Stage 4 completion.
+- Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. Ruff was not available locally, so lint verification was skipped.
+
+## 2026-06-28
+
 - Implemented Stage 3 wishlist, watched, and rating flows in `cinedive/app/bot/handlers/wishlist.py` and `cinedive/app/bot/handlers/rating.py`.
 - Added reusable persisted media-card rendering in `cinedive/app/bot/media_cards.py` plus wishlist and rating inline keyboards.
 - Extended `MediaRepository` and `UserMediaRepository` to support persisted card loading, wishlist removal, watched status, ratings, and `rated_at` persistence through existing schema.

@@ -16,8 +16,9 @@ CineDive is a Telegram bot for movie and TV show recommendations. Users will be 
 - Persisted media cards with posters, metadata, overview, and action buttons.
 - Wishlist add/list/open/remove flows.
 - Watched and 1-10 rating flows.
+- 24-hour mood presets and simple non-ML recommendations from saved media.
 
-Recommendations, mood sessions, and soundtrack links are intentionally staged for follow-up work.
+Soundtrack links are intentionally staged for follow-up work.
 
 ## Project Layout
 

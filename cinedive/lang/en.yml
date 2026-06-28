@@ -48,7 +48,20 @@ media_types:
   tv: "TV show"
 
 recommendations:
-  placeholder: "Recommendations are reserved for the next stage: mood check, genre match, and watched/hidden filters."
+  no_candidates: "I do not have enough saved media to recommend yet. Search and open a few movie or TV cards first."
+  hidden: "Hidden for this mood session."
+
+mood:
+  ask: "What are you in the mood for today? This choice is temporary."
+  saved: "Mood saved: <b>{mood}</b>."
+  unknown: "Unknown mood option."
+  presets:
+    balanced: "Balanced"
+    fun: "Fun"
+    intense: "Intense"
+    cozy: "Cozy movie"
+    short: "Short movie"
+    series: "TV show"
 
 wishlist:
   title: "Your wishlist"
@@ -76,7 +89,7 @@ media_card:
   remove_wishlist: "🗑 Remove"
   watched: "✅ Watched"
   rate: "⭐ Rate"
-  not_now: "🙈 Not now"
+  not_now: "🙈 Hide"
   next: "🎲 Next"
   soundtrack: "🎵 Soundtrack"
   tmdb_rating: "TMDB: {rating}/10 ({votes} votes)"
