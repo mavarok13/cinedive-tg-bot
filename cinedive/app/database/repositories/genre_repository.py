@@ -15,6 +15,7 @@ class GenreRepository:
         external_id: int,
         media_type: str,
         name: str,
+        update_name: bool = True,
     ) -> Genre:
         statement = select(Genre).where(
             Genre.source == source,
@@ -31,7 +32,7 @@ class GenreRepository:
             )
             self._session.add(genre)
             await self._session.flush()
-        elif genre.name != name:
+        elif update_name and genre.name != name:
             genre.name = name
         return genre
 

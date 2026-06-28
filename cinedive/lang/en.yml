@@ -35,7 +35,17 @@ profile:
 
 search:
   ask_query: "Send a movie or TV show title to search."
-  placeholder: "Search UI is ready. TMDB lookup and result cards will be wired in the next MVP stage."
+  empty_query: "Send a title as text so I can search TMDB."
+  failed: "TMDB search is unavailable right now. Please try again later."
+  no_results: "Nothing found. Try another title."
+  results_intro: "Search results for <b>{query}</b>:"
+  choose_result: "Choose one of the search results above."
+  invalid_selection: "This search result expired. Start a new search."
+  unknown_title: "Untitled"
+
+media_types:
+  movie: "Movie"
+  tv: "TV show"
 
 recommendations:
   placeholder: "Recommendations are reserved for the next stage: mood check, genre match, and watched/hidden filters."
@@ -59,6 +69,8 @@ media_card:
   not_now: "🙈 Not now"
   next: "🎲 Next"
   soundtrack: "🎵 Soundtrack"
+  tmdb_rating: "TMDB: {rating}/10 ({votes} votes)"
+  runtime: "Runtime: {minutes} min"
 
 genres:
   movie:

@@ -1,7 +1,7 @@
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from cinedive.app.database.models import MediaItem, MediaTranslation
+from cinedive.app.database.models import MediaGenre, MediaItem, MediaTranslation
 
 
 class MediaRepository:
@@ -80,3 +80,9 @@ class MediaRepository:
         translation.overview = overview
         await self._session.flush()
         return translation
+
+    async def replace_genres(self, *, media_id: int, genre_ids: list[int]) -> None:
+        await self._session.execute(delete(MediaGenre).where(MediaGenre.media_id == media_id))
+        for genre_id in dict.fromkeys(genre_ids):
+            self._session.add(MediaGenre(media_id=media_id, genre_id=genre_id))
+        await self._session.flush()

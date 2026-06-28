@@ -1,5 +1,13 @@
 # Last Changes
 
+## 2026-06-28
+
+- Implemented Stage 2 TMDB search: users can submit a query, choose movie or TV results, fetch details, and receive localized media cards with posters and action buttons.
+- Persisted selected TMDB media items, localized translations, and media-genre links through repositories while preserving handler/service/database boundaries.
+- Updated English/Russian locale copy and persistent docs for the completed Stage 2 scope.
+
+Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. `py -3.11 -m ruff check .` was skipped because Ruff is not installed in the local Python 3.11 environment.
+
 ## 2026-06-27
 
 - Added GitHub Actions deployment that builds and pushes the bot image to GHCR, copies Compose/bootstrap files to the remote host, runs Alembic migrations, and restarts Docker Compose.

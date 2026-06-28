@@ -1,5 +1,14 @@
 # Changelogs
 
+## 2026-06-28
+
+- Implemented `cinedive/app/bot/handlers/search.py` so the Search menu button starts an FSM query flow, calls `TMDBService.search_media`, renders inline result choices, fetches selected movie/TV details, and sends localized media cards with poster fallback behavior.
+- Updated `cinedive/app/bot/handlers/menu.py` to clear FSM state when users return to the main menu or press Back.
+- Added `cinedive/app/bot/keyboards/search.py` for result-choice inline keyboards and expanded search/media-card locale keys in `cinedive/lang/en.yml` and `cinedive/lang/ru.yml`.
+- Extended repository support in `MediaRepository` and `GenreRepository` so selected media persist media items, translations, canonical genre records, and media-genre links without moving SQLAlchemy logic into handlers.
+- Updated README and persistent docs for Stage 2 completion.
+- Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. Ruff was not available locally, so lint verification was skipped.
+
 ## 2026-06-27
 
 - Added `.github/workflows/deploy.yml` for GHCR image publishing and remote Docker Compose deployment modeled after the sibling Telegram bot project.

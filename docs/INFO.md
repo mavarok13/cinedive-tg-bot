@@ -12,6 +12,8 @@
 - New users can choose favorite genres from an inline onboarding keyboard.
 - Main menu buttons exist for Recommend, Wishlist, Search, and Profile.
 - Profile displays stored favorite genres.
+- Search is wired to TMDB multi-search for movies and TV shows.
+- Selecting a search result fetches TMDB details, persists the media item, localized translation, and genre links, then renders a media card with poster and action buttons.
 - Telegram-facing UI texts and labels are loaded from English/Russian YAML locale files based on the user's Telegram locale, with English fallback.
 - SQLAlchemy models and Alembic initial migration define the planned database schema.
 - TMDB async client exists with search, movie details, TV details, and genre methods.
@@ -19,7 +21,6 @@
 
 ## MVP Direction
 
-- Wire Search to TMDB and persist selected media cards.
 - Add wishlist add/remove and media-card rendering.
 - Add watched and 1-10 rating flow.
 - Add simple non-ML recommendations based on favorite genres, TMDB rating, and popularity.

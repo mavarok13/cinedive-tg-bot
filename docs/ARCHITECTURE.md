@@ -74,15 +74,20 @@ The `media_items` table has a unique constraint on `(source, external_id, media_
 5. Otherwise, an inline genre keyboard is shown.
 6. `onboarding.py` toggles genre rows and user-genre links through repositories.
 7. When the user presses Done, the main menu is shown.
+8. User presses Search and `search.py` asks for a query through `SearchStates`.
+9. Search delegates TMDB lookup and detail fetches to `TMDBService`.
+10. Selected results are persisted through `MediaRepository` and `GenreRepository` as media items, translations, and media-genre links.
+11. The handler renders a localized media card with poster, metadata, overview, and existing action callbacks.
 
-## Planned MVP Data Flow
+## MVP Data Flow
 
 Search flow:
 
 1. Handler asks for query and delegates to `TMDBService.search_media`.
-2. User chooses a result.
-3. Details are fetched from TMDB and persisted through `MediaRepository`.
-4. Handler renders a media card with action callbacks.
+2. User chooses a result from inline buttons backed by FSM state.
+3. Details and canonical TMDB genre names are fetched through `TMDBService`.
+4. Media item, localized translation, and genre links are persisted through repositories.
+5. Handler renders a media card with poster and action callbacks.
 
 Recommendation flow:
 

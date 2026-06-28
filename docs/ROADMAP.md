@@ -18,6 +18,8 @@ Status: complete.
 
 ## Stage 2: TMDB Search And Media Cards
 
+Status: complete.
+
 - Wire Search FSM to `TMDBService.search_media`.
 - Render result choices.
 - Fetch movie or TV details after selection.

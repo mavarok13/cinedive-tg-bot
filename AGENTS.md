@@ -77,7 +77,7 @@ If the index is missing, run `codebase-index index`. If it is stale, run `codeba
 - `BOT_MODE=webhook` starts an aiohttp web server, registers the Telegram webhook with `secret_token`, and exposes `GET /health`.
 - `BOT_MODE=polling` is local-development only and deletes any existing webhook before polling.
 - Main menu buttons exist for Recommend, Wishlist, Search, and Profile.
-- Search, recommendation, wishlist, rating, mood, and soundtrack handlers are intentionally placeholders until the next MVP stages.
+- Search is wired to TMDB and persists selected media cards; recommendation, wishlist, rating, mood, and soundtrack handlers are intentionally placeholders until the next MVP stages.
 - SQLAlchemy models and the initial Alembic migration define the planned persistence model.
 - TMDB integration exists as a reusable async client but is not wired into the search UI yet.
 - GitHub Actions deployment publishes the Docker image to GHCR, runs Alembic migrations on the remote host, and restarts Docker Compose.
