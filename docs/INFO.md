@@ -25,11 +25,11 @@
 - Add watched and 1-10 rating flow.
 - Add simple non-ML recommendations based on favorite genres, TMDB rating, and popularity.
 - Add temporary 48-hour mood sessions separate from long-term genre preferences.
-- Add soundtrack external search links only.
+- Add soundtrack links to legal external music platforms, resolving direct platform links when official/public APIs make that practical and falling back to platform search links when needed.
 
 ## Explicitly Out Of Scope For Now
 
 - Party/match system.
 - ML recommendations.
-- Downloading or sending music files.
+- Downloading, proxying, uploading, or sending music files.
 - Deployment hardening beyond the current GHCR, Docker Compose, and aiohttp webhook path.

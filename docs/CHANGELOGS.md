@@ -2,6 +2,12 @@
 
 ## 2026-06-28
 
+- Updated `AGENTS.md`, `docs/INFO.md`, `docs/ROADMAP.md`, and `docs/ARCHITECTURE.md` to define soundtrack behavior as legal external music-platform links rather than audio delivery.
+- Clarified that future soundtrack integrations may use official/public APIs to resolve direct platform links, should fall back to platform search links when confidence is low, and must not download, proxy, upload, cache, or send music files.
+- Verification: documentation-only change; no runtime checks were run.
+
+## 2026-06-28
+
 - Implemented `cinedive/app/bot/handlers/search.py` so the Search menu button starts an FSM query flow, calls `TMDBService.search_media`, renders inline result choices, fetches selected movie/TV details, and sends localized media cards with poster fallback behavior.
 - Updated `cinedive/app/bot/handlers/menu.py` to clear FSM state when users return to the main menu or press Back.
 - Added `cinedive/app/bot/keyboards/search.py` for result-choice inline keyboards and expanded search/media-card locale keys in `cinedive/lang/en.yml` and `cinedive/lang/ru.yml`.

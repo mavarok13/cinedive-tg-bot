@@ -67,7 +67,9 @@ If the index is missing, run `codebase-index index`. If it is stale, run `codeba
 - Keep SQLAlchemy queries inside repositories; services should depend on repositories instead of raw sessions when business logic grows.
 - Do not implement the party/match system until explicitly requested. Keep schemas and services extensible, but avoid speculative code.
 - Do not implement ML recommendations in the MVP. Use simple score-based ranking when recommendations are added.
-- Do not send or download soundtrack files. Soundtrack MVP behavior should return external links only.
+- Do not download, upload, proxy, or send soundtrack/music files. Soundtrack behavior should return external links to legal music platforms only.
+- Soundtrack integrations may use official/public APIs to resolve platform links. If a confident match cannot be resolved, fall back to platform search links.
+- Do not use unofficial downloaders, ripping tools, scraping that violates platform terms, or Telegram audio delivery for copyrighted music. Cache only metadata and external URLs, never audio files.
 - Do not commit secrets or `.env`; use `.env.example` for documented variables.
 - Escape dynamic user-provided text before inserting it into HTML Telegram messages.
 

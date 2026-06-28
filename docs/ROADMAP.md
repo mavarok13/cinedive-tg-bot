@@ -40,11 +40,12 @@ Status: complete.
 - Implement simple recommendation scoring from genre match, TMDB rating, and popularity.
 - Exclude watched and temporarily hidden media.
 
-## Stage 5: Soundtrack Links
+## Stage 5: Soundtrack Platform Links
 
-- Return external search links for soundtrack requests.
-- Optionally cache external links in `soundtracks`.
-- Do not download or send music files.
+- Return external links to legal music platforms for soundtrack requests.
+- Resolve direct platform links through official/public APIs where practical, with platform search links as fallback.
+- Optionally cache platform metadata and external links in `soundtracks`.
+- Do not download, proxy, upload, or send music files.
 
 ## Later: Party/Match System
 

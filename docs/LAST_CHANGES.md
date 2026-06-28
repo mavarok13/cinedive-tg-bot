@@ -2,6 +2,13 @@
 
 ## 2026-06-28
 
+- Clarified soundtrack guidance so future work returns links to legal external music platforms, allows official/public API link resolution, and falls back to platform search links when needed.
+- Documented that soundtrack flows must not download, proxy, upload, cache, or send music files and may cache only metadata and external URLs.
+
+Verification: documentation-only change; no runtime checks were run.
+
+## 2026-06-28
+
 - Implemented Stage 2 TMDB search: users can submit a query, choose movie or TV results, fetch details, and receive localized media cards with posters and action buttons.
 - Persisted selected TMDB media items, localized translations, and media-genre links through repositories while preserving handler/service/database boundaries.
 - Updated English/Russian locale copy and persistent docs for the completed Stage 2 scope.

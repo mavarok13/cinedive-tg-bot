@@ -34,7 +34,7 @@ Files: `cinedive/app/services/`
 - `TMDBService` wraps TMDB HTTP requests.
 - `RecommendationService` is reserved for simple non-ML recommendation ranking.
 - `MoodService` owns mood-session expiration rules.
-- `SoundtrackService` builds external soundtrack search links for the MVP.
+- `SoundtrackService` builds external soundtrack links to legal music platforms for the MVP.
 
 Services should contain business decisions and use repositories for persistence as flows grow.
 
@@ -61,7 +61,7 @@ The initial schema contains:
 - `media_genres`: media-to-genre links.
 - `user_media`: wishlist, watched, hidden, ignored statuses and optional 1-10 rating.
 - `user_mood_sessions`: temporary mood preferences with expiry.
-- `soundtracks`: future cache for external soundtrack links.
+- `soundtracks`: future cache for external soundtrack platform metadata and links.
 
 The `media_items` table has a unique constraint on `(source, external_id, media_type)`. `user_media` uses `(user_id, media_id)` as the primary key.
 
@@ -99,8 +99,9 @@ Recommendation flow:
 Soundtrack flow:
 
 1. Handler resolves the current media title.
-2. `SoundtrackService` returns an external YouTube search URL.
-3. No music files are downloaded or sent.
+2. `SoundtrackService` resolves legal external music-platform links through official/public APIs where practical.
+3. If a confident direct platform match is unavailable, `SoundtrackService` falls back to platform search links.
+4. No music files are downloaded, proxied, uploaded, cached, or sent through Telegram.
 
 ## Deployment Flow
 
