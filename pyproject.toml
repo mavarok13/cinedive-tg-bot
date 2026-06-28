@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "CineDive Telegram bot for movie and TV show recommendations."
 readme = "README.md"
 requires-python = ">=3.11"
-license = "Proprietary"
+license = "LicenseRef-Proprietary"
 authors = [{ name = "Samuil Makarov" }]
 dependencies = [
     "aiogram>=3.13,<4",
