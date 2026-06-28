@@ -113,9 +113,10 @@ Recommendation flow:
 Soundtrack flow:
 
 1. Handler resolves the current media title.
-2. `SoundtrackService` resolves legal external music-platform links through official/public APIs where practical.
-3. If a confident direct platform match is unavailable, `SoundtrackService` falls back to platform search links.
-4. No music files are downloaded, proxied, uploaded, cached, or sent through Telegram.
+2. `SoundtrackService` queries Deezer public API for a confident direct soundtrack match.
+3. If a direct match is unavailable, `SoundtrackService` falls back to legal platform search links for Deezer, YouTube Music, Spotify, Apple Music, and Yandex Music.
+4. `SoundtrackRepository` caches only metadata and external URLs in `soundtracks`.
+5. No music files are downloaded, proxied, uploaded, cached, or sent through Telegram.
 
 ## Deployment Flow
 

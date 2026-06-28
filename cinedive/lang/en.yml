@@ -82,7 +82,16 @@ watched:
   placeholder: "Marked as watched."
 
 soundtrack:
-  placeholder: "Soundtrack links will use external search URLs, no music files."
+  title: "Soundtrack links for <b>{title}</b>"
+  disclaimer: "External legal music-platform links only. No audio files are sent."
+  invalid_media: "This media card is no longer available. Search for it again."
+  platforms:
+    deezer: "Deezer direct match"
+    deezer_search: "Deezer search"
+    youtube_music: "YouTube Music search"
+    spotify: "Spotify search"
+    apple_music: "Apple Music search"
+    yandex_music: "Yandex Music search"
 
 media_card:
   to_wishlist: "❤️ To wishlist"

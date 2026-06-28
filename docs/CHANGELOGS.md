@@ -2,6 +2,14 @@
 
 ## 2026-06-28
 
+- Implemented Stage 5 in `cinedive/app/bot/handlers/soundtrack.py`, `cinedive/app/services/soundtrack_service.py`, and `cinedive/app/database/repositories/soundtrack_repository.py`.
+- Added Deezer public API direct soundtrack matching, legal fallback search links for Deezer, YouTube Music, Spotify, Apple Music, and Yandex Music, and metadata/URL-only caching in `soundtracks`.
+- Updated English/Russian soundtrack UI copy and persistent docs for Stage 5 completion.
+- Added `docs/SETUP.md` with API, local run, production webhook, and GitHub Actions deployment parameter instructions.
+- Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. Ruff was not available locally, so lint verification was skipped.
+
+## 2026-06-28
+
 - Implemented Stage 4.5 Hybrid Recommendation Expansion in `cinedive/app/bot/handlers/recommendations.py`, `cinedive/app/services/tmdb_service.py`, `cinedive/app/services/recommendation_service.py`, and repositories.
 - Added TMDB Discover candidate sourcing, detail fetches, local persistence before ranking, content-based fallback behavior, and stronger current-user exclusions including already-rated media.
 - Added collaborative rating boost from users with overlapping favorite genres once enough similar-user ratings exist.

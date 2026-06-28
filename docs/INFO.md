@@ -18,14 +18,11 @@
 - Users can mark media as watched and save a 1-10 rating with `rated_at`.
 - Users can choose a temporary 24-hour mood preset and receive simple non-ML recommendations from saved and TMDB Discover-sourced media, excluding watched, ignored, hidden, and already-rated items.
 - Discovered recommendation candidates are persisted as normal media cards before ranking, while IMDb remains stored only as an external identifier.
+- Soundtrack requests return legal external music-platform links, including a Deezer direct match when Deezer public API returns a confident soundtrack result and platform search links as fallback.
 - Telegram-facing UI texts and labels are loaded from English/Russian YAML locale files based on the user's Telegram locale, with English fallback.
 - SQLAlchemy models and Alembic initial migration define the planned database schema.
 - TMDB async client exists with search, movie details, TV details, and genre methods.
 - GitHub Actions deployment is configured to publish a GHCR image, copy Docker Compose deployment files to a remote host, run Alembic migrations, and restart the webhook service.
-
-## MVP Direction
-
-- Add soundtrack links to legal external music platforms, resolving direct platform links when official/public APIs make that practical and falling back to platform search links when needed.
 
 ## Explicitly Out Of Scope For Now
 

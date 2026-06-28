@@ -17,8 +17,19 @@ CineDive is a Telegram bot for movie and TV show recommendations. Users will be 
 - Wishlist add/list/open/remove flows.
 - Watched and 1-10 rating flows.
 - 24-hour mood presets and simple non-ML recommendations from saved media.
+- Soundtrack platform links with Deezer direct match when available and legal search links as fallback.
 
-Soundtrack links are intentionally staged for follow-up work.
+No audio files are downloaded, proxied, uploaded, cached, or sent through Telegram.
+
+## API And Deploy Parameters
+
+- Telegram: create a bot with BotFather and set `BOT_TOKEN`.
+- TMDB: create a TMDB account, open `Settings` -> `API`, copy the v3 `API Key`, and set `TMDB_API_KEY`. Do not use the v4 Read Access Token for this app.
+- Database: set `DATABASE_URL` to an async SQLAlchemy PostgreSQL URL such as `postgresql+asyncpg://user:password@host:5432/db`.
+- Local mode: set `BOT_MODE=polling`.
+- Production mode: set `BOT_MODE=webhook`, `APP_ENV=production`, `WEBHOOK_BASE_URL`, and `WEBHOOK_SECRET`.
+- Mood sessions: optional `MOOD_SESSION_TTL_HOURS`, default `24`.
+- Soundtracks: no API key is required for the current MVP. Deezer direct matching uses Deezer public API; other platforms are legal search links.
 
 ## Project Layout
 

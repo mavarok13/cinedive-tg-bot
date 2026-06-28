@@ -58,6 +58,8 @@ Status: complete.
 
 ## Stage 5: Soundtrack Platform Links
 
+Status: complete.
+
 - Return external links to legal music platforms for soundtrack requests.
 - Resolve direct platform links through official/public APIs where practical, with platform search links as fallback.
 - Optionally cache platform metadata and external links in `soundtracks`.

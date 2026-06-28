@@ -82,7 +82,16 @@ watched:
   placeholder: "Отмечено как просмотренное."
 
 soundtrack:
-  placeholder: "Саундтреки будут открываться внешними ссылками для поиска, без музыкальных файлов."
+  title: "Ссылки на саундтрек для <b>{title}</b>"
+  disclaimer: "Только внешние легальные музыкальные платформы. Аудиофайлы не отправляются."
+  invalid_media: "Эта карточка больше недоступна. Найдите её заново."
+  platforms:
+    deezer: "Прямое совпадение Deezer"
+    deezer_search: "Поиск Deezer"
+    youtube_music: "Поиск YouTube Music"
+    spotify: "Поиск Spotify"
+    apple_music: "Поиск Apple Music"
+    yandex_music: "Поиск Yandex Music"
 
 media_card:
   to_wishlist: "❤️ В избранное"

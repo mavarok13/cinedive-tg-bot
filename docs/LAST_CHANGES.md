@@ -2,6 +2,15 @@
 
 ## 2026-06-28
 
+- Implemented Stage 5 soundtrack platform links.
+- Added Deezer public API direct soundtrack matching, legal platform search-link fallbacks, soundtrack URL metadata caching, and localized soundtrack responses.
+- Added setup instructions for Telegram, TMDB, local run, production webhook, GitHub Actions deploy secrets, and soundtrack API expectations.
+- Confirmed the current soundtrack MVP requires no additional music-platform API secrets and never downloads, proxies, uploads, caches, or sends audio files.
+
+Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. `py -3.11 -m ruff check .` was skipped because Ruff is not installed in the local Python 3.11 environment.
+
+## 2026-06-28
+
 - Implemented Stage 4.5 hybrid recommendation expansion.
 - Added TMDB Discover candidate sourcing, persisted discovered media before ranking, stronger exclusion of watched/ignored/hidden/already-rated media, and collaborative rating boost from similar users when enough ratings exist.
 - Kept IMDb as an external identifier only; recommendations continue to use TMDB/public app data and do not scrape IMDb or unofficial APIs.
