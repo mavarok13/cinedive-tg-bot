@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from cinedive.app.database.models import UserMedia
@@ -26,6 +26,14 @@ class UserMediaRepository:
             user_media.status = status
         await self._session.flush()
         return user_media
+
+    async def remove(self, *, user_id: int, media_id: int) -> None:
+        statement = delete(UserMedia).where(
+            UserMedia.user_id == user_id,
+            UserMedia.media_id == media_id,
+        )
+        await self._session.execute(statement)
+        await self._session.flush()
 
     async def set_rating(self, *, user_id: int, media_id: int, rating: int) -> UserMedia:
         user_media = await self.set_status(user_id=user_id, media_id=media_id, status="watched")

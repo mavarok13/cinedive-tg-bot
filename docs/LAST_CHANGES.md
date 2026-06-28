@@ -2,6 +2,15 @@
 
 ## 2026-06-28
 
+- Implemented Stage 3 wishlist, watched, and rating flows.
+- Added reusable persisted media-card rendering, wishlist/rating inline keyboards, wishlist add/list/open/remove handlers, and watched/rating FSM handlers.
+- Extended repositories to load persisted media-card data, delete user-media rows, and save watched ratings with `rated_at`.
+- Updated English/Russian UI copy and persistent docs for Stage 3 completion while preserving soundtrack platform-link guidance.
+
+Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. Handler import smoke test was blocked because `aiogram` is not installed in the local Python 3.11 environment. `py -3.11 -m ruff check .` was skipped because Ruff is not installed in the local Python 3.11 environment.
+
+## 2026-06-28
+
 - Clarified soundtrack guidance so future work returns links to legal external music platforms, allows official/public API link resolution, and falls back to platform search links when needed.
 - Documented that soundtrack flows must not download, proxy, upload, cache, or send music files and may cache only metadata and external URLs.
 

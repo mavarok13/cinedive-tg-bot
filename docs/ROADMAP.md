@@ -28,6 +28,8 @@ Status: complete.
 
 ## Stage 3: Wishlist, Watched, And Rating
 
+Status: complete.
+
 - Add wishlist add/list/open/remove flows.
 - Add watched callback.
 - Ask for rating from 1 to 10 after watched.

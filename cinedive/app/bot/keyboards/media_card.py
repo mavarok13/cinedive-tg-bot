@@ -3,13 +3,20 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from cinedive.app.localization import t
 
 
-def media_card_keyboard(media_id: int, locale: str | None = None) -> InlineKeyboardMarkup:
+def media_card_keyboard(
+    media_id: int,
+    locale: str | None = None,
+    *,
+    in_wishlist: bool = False,
+) -> InlineKeyboardMarkup:
+    wishlist_text = "media_card.remove_wishlist" if in_wishlist else "media_card.to_wishlist"
+    wishlist_action = "remove" if in_wishlist else "add"
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text=t(locale, "media_card.to_wishlist"),
-                    callback_data=f"wishlist:add:{media_id}",
+                    text=t(locale, wishlist_text),
+                    callback_data=f"wishlist:{wishlist_action}:{media_id}",
                 ),
                 InlineKeyboardButton(
                     text=t(locale, "media_card.watched"), callback_data=f"watched:{media_id}"

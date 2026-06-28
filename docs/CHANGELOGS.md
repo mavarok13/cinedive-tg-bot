@@ -2,6 +2,14 @@
 
 ## 2026-06-28
 
+- Implemented Stage 3 wishlist, watched, and rating flows in `cinedive/app/bot/handlers/wishlist.py` and `cinedive/app/bot/handlers/rating.py`.
+- Added reusable persisted media-card rendering in `cinedive/app/bot/media_cards.py` plus wishlist and rating inline keyboards.
+- Extended `MediaRepository` and `UserMediaRepository` to support persisted card loading, wishlist removal, watched status, ratings, and `rated_at` persistence through existing schema.
+- Updated localized English/Russian copy, README, AGENTS, and persistent docs for Stage 3 completion.
+- Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. Handler import smoke test was blocked because `aiogram` is not installed in the local Python 3.11 environment. Ruff was not available locally, so lint verification was skipped.
+
+## 2026-06-28
+
 - Updated `AGENTS.md`, `docs/INFO.md`, `docs/ROADMAP.md`, and `docs/ARCHITECTURE.md` to define soundtrack behavior as legal external music-platform links rather than audio delivery.
 - Clarified that future soundtrack integrations may use official/public APIs to resolve direct platform links, should fall back to platform search links when confidence is low, and must not download, proxy, upload, cache, or send music files.
 - Verification: documentation-only change; no runtime checks were run.

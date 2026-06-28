@@ -78,6 +78,8 @@ The `media_items` table has a unique constraint on `(source, external_id, media_
 9. Search delegates TMDB lookup and detail fetches to `TMDBService`.
 10. Selected results are persisted through `MediaRepository` and `GenreRepository` as media items, translations, and media-genre links.
 11. The handler renders a localized media card with poster, metadata, overview, and existing action callbacks.
+12. Wishlist callbacks store or remove `user_media` rows with `wishlist` status and can reopen persisted media cards.
+13. Watched and rating callbacks use `RatingStates` to ask for a 1-10 rating and persist `watched`, `rating`, and `rated_at` through `UserMediaRepository`.
 
 ## MVP Data Flow
 
@@ -88,6 +90,13 @@ Search flow:
 3. Details and canonical TMDB genre names are fetched through `TMDBService`.
 4. Media item, localized translation, and genre links are persisted through repositories.
 5. Handler renders a media card with poster and action callbacks.
+
+Wishlist and rating flow:
+
+1. Media-card callbacks save wishlist status or start the rating flow.
+2. The Wishlist menu lists saved cards from persisted media data and lets users reopen or remove items.
+3. Watched/rate callbacks ask for a 1-10 rating using FSM state and inline rating buttons.
+4. `UserMediaRepository` persists wishlist/watched status, rating, and `rated_at`.
 
 Recommendation flow:
 

@@ -51,19 +51,29 @@ recommendations:
   placeholder: "Recommendations are reserved for the next stage: mood check, genre match, and watched/hidden filters."
 
 wishlist:
-  placeholder: "Wishlist storage is ready. The list UI will be implemented after media cards."
+  title: "Your wishlist"
+  empty: "Your wishlist is empty. Search for a movie or TV show and add it from the media card."
+  added: "Added <b>{title}</b> to your wishlist."
+  removed: "Removed from your wishlist."
+  invalid_media: "This media card is no longer available. Search for it again."
+  not_in_wishlist: "This item is not in your wishlist anymore."
 
 rating:
-  placeholder: "Rating flow will be implemented after media cards."
+  ask: "Rate <b>{title}</b> from 1 to 10."
+  invalid: "Send a number from 1 to 10."
+  expired: "Rating request expired. Open the media card and try again."
+  saved: "Saved your rating: {rating}/10."
+  invalid_media: "This media card is no longer available. Search for it again."
 
 watched:
-  placeholder: "Watched flow will ask for a 1-10 rating in the next stage."
+  placeholder: "Marked as watched."
 
 soundtrack:
   placeholder: "Soundtrack links will use external search URLs, no music files."
 
 media_card:
   to_wishlist: "❤️ To wishlist"
+  remove_wishlist: "🗑 Remove"
   watched: "✅ Watched"
   rate: "⭐ Rate"
   not_now: "🙈 Not now"
