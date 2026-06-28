@@ -13,6 +13,7 @@ Status: complete.
 - Implement `/start`, user registration, genre onboarding, and main menu.
 - Add a basic TMDB client.
 - Add production webhook mode with aiohttp, Telegram `secret_token`, and `GET /health`.
+- Add GitHub Actions deployment through GHCR, Docker Compose, and Alembic migrations.
 - Add persistent AI guidance docs.
 
 ## Stage 2: TMDB Search And Media Cards

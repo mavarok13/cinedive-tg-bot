@@ -2,6 +2,14 @@
 
 ## 2026-06-27
 
+- Added GitHub Actions deployment that builds and pushes the bot image to GHCR, copies Compose/bootstrap files to the remote host, runs Alembic migrations, and restarts Docker Compose.
+- Updated Docker Compose to run the bot from `BOT_IMAGE`, bind exposed services to localhost, and bootstrap PostgreSQL with a non-superuser app role.
+- Added PostgreSQL init bootstrap and `.dockerignore`, and documented deployment secrets and runtime requirements.
+
+Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, `docker compose config` with a temporary `.env`, and `git diff --check` passed. `py -3.11 -m ruff check .` was skipped because Ruff is not installed in the local Python 3.11 environment.
+
+## 2026-06-27
+
 - Added YAML-backed UI localization with packaged English and Russian locale files.
 - Updated handlers and keyboard builders to render Telegram-facing copy by user Telegram locale with English fallback.
 - Localized main menu, onboarding, profile, placeholders, media-card labels, alerts, and genre labels while keeping stored genre names canonical.

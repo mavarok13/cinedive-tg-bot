@@ -29,6 +29,8 @@ cinedive/
 │   └── utils/
 ├── lang/
 ├── alembic/
+├── deploy/
+├── .github/workflows/
 ├── docs/
 ├── docker-compose.yml
 ├── Dockerfile
@@ -55,6 +57,24 @@ Production must use `BOT_MODE=webhook`. Set these variables before running the a
 - `WEB_SERVER_PORT`, usually `8080` behind a reverse proxy.
 
 Webhook mode starts an aiohttp server, registers the Telegram webhook on startup, validates Telegram webhook secret headers, and exposes `GET /health`.
+
+## GitHub Actions Deployment
+
+`.github/workflows/deploy.yml` deploys on pushes to `main` and manual `workflow_dispatch` runs. It builds and pushes `ghcr.io/<owner>/<repo>`, copies `docker-compose.yml` and the PostgreSQL init script to `/home/deploy/apps/cinedive-tg-bot`, updates deployment variables in the remote `.env`, runs `alembic upgrade head`, and restarts Docker Compose.
+
+Required GitHub secrets:
+
+- `DEPLOY_HOST`
+- `DEPLOY_SSH_KEY`
+- `POSTGRES_APP_PASSWORD`
+- `POSTGRES_SUPERUSER_PASSWORD`
+
+Optional GitHub secrets:
+
+- `DEPLOY_PORT`, defaults to `22`.
+- `GHCR_READ_TOKEN` and `GHCR_USERNAME`, only needed if the server cannot pull the GHCR image anonymously.
+
+The remote `.env` must also contain bot runtime secrets such as `BOT_TOKEN`, `TMDB_API_KEY`, `WEBHOOK_BASE_URL`, and `WEBHOOK_SECRET`. The workflow manages `BOT_IMAGE`, `APP_ENV=production`, `BOT_MODE=webhook`, and PostgreSQL deployment variables.
 
 ## Architecture Rules
 

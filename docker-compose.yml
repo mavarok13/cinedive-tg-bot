@@ -1,32 +1,39 @@
 services:
   postgres:
     image: postgres:16-alpine
+    container_name: cinedive-postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-cinedive}
-      POSTGRES_USER: ${POSTGRES_USER:-cinedive}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cinedive}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD:?POSTGRES_SUPERUSER_PASSWORD is required}
+      POSTGRES_DB: postgres
+      CINEDIVE_DB: ${POSTGRES_DB:-cinedive}
+      CINEDIVE_APP_USER: ${POSTGRES_APP_USER:-cinedive_bot_app}
+      CINEDIVE_APP_PASSWORD: ${POSTGRES_APP_PASSWORD:?POSTGRES_APP_PASSWORD is required}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./deploy/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cinedive} -d ${POSTGRES_DB:-cinedive}"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 5
 
   bot:
-    build: .
+    image: ${BOT_IMAGE:-cinedive-tg-bot:local}
+    container_name: cinedive-tg-bot
+    restart: unless-stopped
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-cinedive}:${POSTGRES_PASSWORD:-cinedive}@postgres:5432/${POSTGRES_DB:-cinedive}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_APP_USER:-cinedive_bot_app}:${POSTGRES_APP_PASSWORD}@postgres:5432/${POSTGRES_DB:-cinedive}
     ports:
-      - "${WEB_SERVER_PORT:-8080}:${WEB_SERVER_PORT:-8080}"
+      - "127.0.0.1:${WEB_SERVER_PORT:-8080}:${WEB_SERVER_PORT:-8080}"
     depends_on:
       postgres:
         condition: service_healthy
-    restart: unless-stopped
 
 volumes:
   postgres_data:

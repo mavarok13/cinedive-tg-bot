@@ -15,6 +15,7 @@
 - Telegram-facing UI texts and labels are loaded from English/Russian YAML locale files based on the user's Telegram locale, with English fallback.
 - SQLAlchemy models and Alembic initial migration define the planned database schema.
 - TMDB async client exists with search, movie details, TV details, and genre methods.
+- GitHub Actions deployment is configured to publish a GHCR image, copy Docker Compose deployment files to a remote host, run Alembic migrations, and restart the webhook service.
 
 ## MVP Direction
 
@@ -30,4 +31,4 @@
 - Party/match system.
 - ML recommendations.
 - Downloading or sending music files.
-- Webhook deployment hardening beyond the basic aiohttp server.
+- Deployment hardening beyond the current GHCR, Docker Compose, and aiohttp webhook path.

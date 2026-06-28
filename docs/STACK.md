@@ -48,18 +48,25 @@ Primary environment variables:
 - `WEBHOOK_SECRET`: secret passed to Telegram as `secret_token` and validated on inbound webhook requests.
 - `WEB_SERVER_HOST`: aiohttp bind host, default `0.0.0.0`.
 - `WEB_SERVER_PORT`: aiohttp bind port, default `8080`.
+- `BOT_IMAGE`: Docker image used by Docker Compose, set by deployment to the GHCR `latest` tag.
 
 Docker Compose PostgreSQL variables:
 
 - `POSTGRES_DB`: database name.
-- `POSTGRES_USER`: database user.
-- `POSTGRES_PASSWORD`: database password.
+- `POSTGRES_PORT`: local host port for PostgreSQL, default `5432`.
+- `POSTGRES_APP_USER`: non-superuser application database role, default `cinedive_bot_app`.
+- `POSTGRES_APP_PASSWORD`: application database role password.
+- `POSTGRES_SUPERUSER_PASSWORD`: bootstrap password for the `postgres` superuser inside the PostgreSQL container.
 
 ## Deployment
 
 - `Dockerfile` packages the Python app with `pip install .`.
-- `docker-compose.yml` starts PostgreSQL and the bot service, exposing `WEB_SERVER_PORT` for webhook mode.
-- Production deployments must set `BOT_MODE=webhook` and provide a public HTTPS `WEBHOOK_BASE_URL`.
+- `docker-compose.yml` starts PostgreSQL and the bot service from `BOT_IMAGE`, binding PostgreSQL and the webhook port to localhost for reverse-proxy usage.
+- `deploy/postgres/init/01-create-app-database.sh` creates or updates the non-superuser app database role and database on first PostgreSQL volume initialization.
+- `.github/workflows/deploy.yml` builds and pushes `ghcr.io/<owner>/<repo>`, copies compose/bootstrap files to `/home/deploy/apps/cinedive-tg-bot`, updates remote deployment variables, runs `alembic upgrade head`, and restarts Docker Compose.
+- Production deployments must set `BOT_MODE=webhook`, `APP_ENV=production`, and provide a public HTTPS `WEBHOOK_BASE_URL`.
+- Required GitHub Actions secrets are `DEPLOY_HOST`, `DEPLOY_SSH_KEY`, `POSTGRES_APP_PASSWORD`, and `POSTGRES_SUPERUSER_PASSWORD`; `DEPLOY_PORT`, `GHCR_READ_TOKEN`, and `GHCR_USERNAME` are optional.
+- The remote `.env` must contain runtime secrets such as `BOT_TOKEN`, `TMDB_API_KEY`, `WEBHOOK_BASE_URL`, and `WEBHOOK_SECRET`.
 
 ## Verification Notes
 

@@ -2,6 +2,14 @@
 
 ## 2026-06-27
 
+- Added `.github/workflows/deploy.yml` for GHCR image publishing and remote Docker Compose deployment modeled after the sibling Telegram bot project.
+- Updated `docker-compose.yml` to consume `BOT_IMAGE`, bind PostgreSQL and webhook ports to localhost, and run PostgreSQL with a bootstrap superuser plus non-superuser CineDive app role.
+- Added `deploy/postgres/init/01-create-app-database.sh` to create or update the app role and database during PostgreSQL initialization.
+- Added `.dockerignore`, updated `.env.example`, README, and persistent docs with deployment variables, required GitHub secrets, and Alembic migration behavior.
+- Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, `docker compose config` with a temporary `.env`, and `git diff --check` passed. Ruff was not available locally, so lint verification was skipped.
+
+## 2026-06-27
+
 - Added `cinedive/app/localization.py` and packaged `cinedive/lang/en.yml` / `cinedive/lang/ru.yml` for YAML-backed UI localization.
 - Updated bot handlers and keyboard builders to render menu labels, onboarding copy, profile text, placeholder responses, callback alerts, media-card buttons, and genre labels from locale files using Telegram `language_code`.
 - Kept genre persistence canonical by continuing to store English TMDB genre names while displaying localized genre labels in the UI.

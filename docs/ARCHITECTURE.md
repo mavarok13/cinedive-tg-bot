@@ -97,6 +97,14 @@ Soundtrack flow:
 2. `SoundtrackService` returns an external YouTube search URL.
 3. No music files are downloaded or sent.
 
+## Deployment Flow
+
+1. `.github/workflows/deploy.yml` runs on pushes to `main` or manual dispatch.
+2. The workflow builds the Docker image from `Dockerfile` and publishes `latest` plus commit-SHA tags to GHCR.
+3. The workflow copies `docker-compose.yml` and `deploy/postgres/init/01-create-app-database.sh` to `/home/deploy/apps/cinedive-tg-bot` on the remote host.
+4. The SSH restart step updates remote deployment variables, starts PostgreSQL, runs `alembic upgrade head` through the bot image, and restarts Docker Compose.
+5. `docker-compose.yml` runs PostgreSQL with a bootstrap superuser and the bot with a non-superuser app role over `postgresql+asyncpg`.
+
 ## Important Constraints
 
 - Keep the party/match system out of the MVP implementation until explicitly requested.

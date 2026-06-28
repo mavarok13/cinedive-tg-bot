@@ -1,0 +1,87 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  DEPLOY_PATH: /home/deploy/apps/cinedive-tg-bot
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set image name
+        run: echo "IMAGE_NAME=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Copy compose files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: deploy
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          source: docker-compose.yml,deploy/postgres/init/01-create-app-database.sh
+          target: ${{ env.DEPLOY_PATH }}
+
+      - name: Restart service
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: deploy
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          script: |
+            set -e
+            cd ${{ env.DEPLOY_PATH }}
+            if [ -n "${{ secrets.GHCR_READ_TOKEN }}" ]; then
+              echo "${{ secrets.GHCR_READ_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+            fi
+            grep -q '^BOT_IMAGE=' .env && sed -i 's#^BOT_IMAGE=.*#BOT_IMAGE=${{ env.IMAGE_NAME }}:latest#' .env || printf '\nBOT_IMAGE=${{ env.IMAGE_NAME }}:latest\n' >> .env
+            grep -q '^APP_ENV=' .env && sed -i 's#^APP_ENV=.*#APP_ENV=production#' .env || printf '\nAPP_ENV=production\n' >> .env
+            grep -q '^BOT_MODE=' .env && sed -i 's#^BOT_MODE=.*#BOT_MODE=webhook#' .env || printf '\nBOT_MODE=webhook\n' >> .env
+            grep -q '^POSTGRES_DB=' .env && sed -i 's#^POSTGRES_DB=.*#POSTGRES_DB=cinedive#' .env || printf '\nPOSTGRES_DB=cinedive\n' >> .env
+            grep -q '^POSTGRES_APP_USER=' .env && sed -i 's#^POSTGRES_APP_USER=.*#POSTGRES_APP_USER=cinedive_bot_app#' .env || printf '\nPOSTGRES_APP_USER=cinedive_bot_app\n' >> .env
+            if [ -z "${{ secrets.POSTGRES_APP_PASSWORD }}" ] || [ -z "${{ secrets.POSTGRES_SUPERUSER_PASSWORD }}" ]; then
+              echo "POSTGRES_APP_PASSWORD and POSTGRES_SUPERUSER_PASSWORD secrets are required"
+              exit 1
+            fi
+            grep -q '^POSTGRES_APP_PASSWORD=' .env && sed -i 's#^POSTGRES_APP_PASSWORD=.*#POSTGRES_APP_PASSWORD=${{ secrets.POSTGRES_APP_PASSWORD }}#' .env || printf '\nPOSTGRES_APP_PASSWORD=${{ secrets.POSTGRES_APP_PASSWORD }}\n' >> .env
+            grep -q '^POSTGRES_SUPERUSER_PASSWORD=' .env && sed -i 's#^POSTGRES_SUPERUSER_PASSWORD=.*#POSTGRES_SUPERUSER_PASSWORD=${{ secrets.POSTGRES_SUPERUSER_PASSWORD }}#' .env || printf '\nPOSTGRES_SUPERUSER_PASSWORD=${{ secrets.POSTGRES_SUPERUSER_PASSWORD }}\n' >> .env
+            if docker compose version >/dev/null 2>&1; then
+              docker compose pull
+              docker compose up -d postgres
+              docker compose run --rm bot alembic upgrade head
+              docker compose up -d --remove-orphans
+            else
+              docker-compose pull
+              docker-compose up -d postgres
+              docker-compose run --rm bot alembic upgrade head
+              docker-compose up -d --remove-orphans
+            fi
+            docker image prune -f

@@ -52,6 +52,8 @@ If the index is missing, run `codebase-index index`. If it is stale, run `codeba
 - `cinedive/app/database/repositories/` contains database access and persistence operations.
 - `cinedive/app/services/` contains business logic and external API integration.
 - `alembic/` contains database migration configuration and revisions.
+- `deploy/postgres/init/` contains PostgreSQL bootstrap scripts used by Docker Compose deployments.
+- `.github/workflows/deploy.yml` publishes the Docker image to GHCR and restarts the remote Docker Compose deployment.
 - `docs/` contains persistent project context for agents.
 
 ## Coding Guidelines
@@ -78,6 +80,7 @@ If the index is missing, run `codebase-index index`. If it is stale, run `codeba
 - Search, recommendation, wishlist, rating, mood, and soundtrack handlers are intentionally placeholders until the next MVP stages.
 - SQLAlchemy models and the initial Alembic migration define the planned persistence model.
 - TMDB integration exists as a reusable async client but is not wired into the search UI yet.
+- GitHub Actions deployment publishes the Docker image to GHCR, runs Alembic migrations on the remote host, and restarts Docker Compose.
 
 ## Local Verification Policy
 
