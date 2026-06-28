@@ -8,10 +8,11 @@ class RecommendationScore:
     genre_match: float
     tmdb_rating: float
     popularity: float
+    collaborative: float = 0.0
 
     @property
     def total(self) -> float:
-        return self.genre_match * 3 + self.tmdb_rating * 1.5 + self.popularity
+        return self.genre_match * 3 + self.tmdb_rating * 1.5 + self.popularity + self.collaborative
 
 
 class RecommendationService:
@@ -21,6 +22,7 @@ class RecommendationService:
         *,
         favorite_genre_ids: set[int],
         mood_genre_ids: set[int],
+        collaborative_scores: dict[int, float] | None = None,
         limit: int = 5,
     ) -> list[RecommendationCandidate]:
         weighted: list[tuple[float, RecommendationCandidate]] = []
@@ -29,6 +31,7 @@ class RecommendationService:
                 candidate,
                 favorite_genre_ids=favorite_genre_ids,
                 mood_genre_ids=mood_genre_ids,
+                collaborative_scores=collaborative_scores or {},
             )
             weighted.append((score.total, candidate))
         weighted.sort(key=lambda item: item[0], reverse=True)
@@ -40,6 +43,7 @@ class RecommendationService:
         *,
         favorite_genre_ids: set[int],
         mood_genre_ids: set[int],
+        collaborative_scores: dict[int, float],
     ) -> RecommendationScore:
         preferred_genres = favorite_genre_ids | mood_genre_ids
         genre_match = 0.0
@@ -51,4 +55,5 @@ class RecommendationService:
             genre_match=genre_match,
             tmdb_rating=tmdb_rating,
             popularity=popularity,
+            collaborative=collaborative_scores.get(candidate.card.id, 0.0),
         )

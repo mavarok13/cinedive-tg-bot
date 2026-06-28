@@ -104,9 +104,11 @@ Recommendation flow:
 
 1. Handler checks active mood session through mood repository/service.
 2. If needed, handler asks a temporary mood preset question and stores the selected mood separately from favorite genres.
-3. `MediaRepository` loads persisted candidate cards while excluding watched, ignored, and currently hidden media.
-4. `RecommendationService` ranks candidates with a simple non-ML score from favorite genre match, mood genre match, TMDB rating, and vote count.
-5. Handler renders the next media card.
+3. Handler seeds candidates from TMDB Discover using favorite genres, mood genres, content type, rating, vote count, runtime, and release-date filters.
+4. Discovered candidates are fetched through `TMDBService`, persisted as normal media items/translations/genre links, and then loaded from `MediaRepository`.
+5. `MediaRepository` excludes watched, ignored, hidden, and already-rated media.
+6. `RecommendationService` ranks candidates with a simple non-ML score from favorite genre match, mood genre match, TMDB rating, vote count, and collaborative rating boost when similar-user ratings exist.
+7. Handler renders the next media card.
 
 Soundtrack flow:
 

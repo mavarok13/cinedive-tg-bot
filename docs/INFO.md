@@ -16,7 +16,8 @@
 - Selecting a search result fetches TMDB details, persists the media item, localized translation, and genre links, then renders a media card with poster and action buttons.
 - Users can add media cards to a wishlist, list wishlist items, reopen saved cards, and remove items.
 - Users can mark media as watched and save a 1-10 rating with `rated_at`.
-- Users can choose a temporary 24-hour mood preset and receive simple non-ML recommendations from saved TMDB media, excluding watched and temporarily hidden items.
+- Users can choose a temporary 24-hour mood preset and receive simple non-ML recommendations from saved and TMDB Discover-sourced media, excluding watched, ignored, hidden, and already-rated items.
+- Discovered recommendation candidates are persisted as normal media cards before ranking, while IMDb remains stored only as an external identifier.
 - Telegram-facing UI texts and labels are loaded from English/Russian YAML locale files based on the user's Telegram locale, with English fallback.
 - SQLAlchemy models and Alembic initial migration define the planned database schema.
 - TMDB async client exists with search, movie details, TV details, and genre methods.

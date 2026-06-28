@@ -204,7 +204,7 @@ class MediaRepository:
 def _is_excluded_user_media(user_media: UserMedia | None, now: datetime) -> bool:
     if user_media is None:
         return False
-    if user_media.status in {"watched", "ignored"}:
+    if user_media.status in {"watched", "ignored"} or user_media.rating is not None:
         return True
     if user_media.status == "hidden":
         return user_media.temporary_hidden_until is None or user_media.temporary_hidden_until > now

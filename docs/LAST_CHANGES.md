@@ -2,6 +2,14 @@
 
 ## 2026-06-28
 
+- Implemented Stage 4.5 hybrid recommendation expansion.
+- Added TMDB Discover candidate sourcing, persisted discovered media before ranking, stronger exclusion of watched/ignored/hidden/already-rated media, and collaborative rating boost from similar users when enough ratings exist.
+- Kept IMDb as an external identifier only; recommendations continue to use TMDB/public app data and do not scrape IMDb or unofficial APIs.
+
+Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. `py -3.11 -m ruff check .` was skipped because Ruff is not installed in the local Python 3.11 environment.
+
+## 2026-06-28
+
 - Implemented Stage 4 mood sessions and simple recommendations.
 - Added 24-hour mood presets, active mood session persistence, recommendation candidate loading from persisted media, non-ML scoring, Next, and temporary Hide behavior.
 - Updated `MOOD_SESSION_TTL_HOURS` default/docs from 48 to 24 hours to match the roadmap.

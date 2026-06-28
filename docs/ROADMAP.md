@@ -44,6 +44,18 @@ Status: complete.
 - Implement simple recommendation scoring from genre match, TMDB rating, and popularity.
 - Exclude watched and temporarily hidden media.
 
+## Stage 4.5: Hybrid Recommendation Expansion
+
+Status: complete.
+
+- Add TMDB Discover candidate sourcing so recommendations are not limited to media already searched by users.
+- Seed candidates from favorite genres, mood genres, content type, TMDB rating, vote count, popularity, runtime, and release-year filters.
+- Persist discovered candidates as normal `media_items`, translations, and media-genre links before ranking.
+- Keep content-based ranking as the default fallback for cold-start users and low-rating datasets.
+- Add collaborative boost from users with similar favorite genres and rating history once enough user ratings exist.
+- Exclude the current user's watched, ignored, hidden, and already-rated media from recommendation results.
+- Keep IMDb as an external identifier only for now; do not depend on IMDb scraping or unofficial APIs for recommendations.
+
 ## Stage 5: Soundtrack Platform Links
 
 - Return external links to legal music platforms for soundtrack requests.

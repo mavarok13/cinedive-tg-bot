@@ -2,6 +2,14 @@
 
 ## 2026-06-28
 
+- Implemented Stage 4.5 Hybrid Recommendation Expansion in `cinedive/app/bot/handlers/recommendations.py`, `cinedive/app/services/tmdb_service.py`, `cinedive/app/services/recommendation_service.py`, and repositories.
+- Added TMDB Discover candidate sourcing, detail fetches, local persistence before ranking, content-based fallback behavior, and stronger current-user exclusions including already-rated media.
+- Added collaborative rating boost from users with overlapping favorite genres once enough similar-user ratings exist.
+- Kept IMDb as an external identifier only and avoided IMDb scraping or unofficial recommendation APIs.
+- Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. Ruff was not available locally, so lint verification was skipped.
+
+## 2026-06-28
+
 - Implemented Stage 4 recommendations in `cinedive/app/bot/handlers/recommendations.py`, including mood preset selection, active mood-session reuse, Next, and temporary Hide callbacks.
 - Added `cinedive/app/bot/keyboards/mood.py` and expanded `MoodService`, `MediaRepository`, `UserMediaRepository`, and `RecommendationService` for 24-hour mood sessions, recommendation candidates, temporary hidden exclusions, and non-ML scoring.
 - Updated `MOOD_SESSION_TTL_HOURS` default and `.env.example` from 48 to 24 hours.

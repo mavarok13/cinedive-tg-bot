@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from cinedive.app.database.models import UserMedia
+from cinedive.app.database.models import Genre, UserGenre, UserMedia
 
 
 class UserMediaRepository:
@@ -61,3 +61,43 @@ class UserMediaRepository:
         )
         result = await self._session.scalars(statement)
         return list(result)
+
+    async def collaborative_rating_scores(
+        self,
+        *,
+        user_id: int,
+        favorite_genre_ids: set[int],
+        min_ratings: int = 3,
+    ) -> dict[int, float]:
+        if not favorite_genre_ids:
+            return {}
+
+        similar_users_statement = (
+            select(UserGenre.user_id)
+            .join(Genre)
+            .where(
+                UserGenre.user_id != user_id,
+                Genre.external_id.in_(favorite_genre_ids),
+            )
+            .distinct()
+        )
+        similar_user_ids = set(await self._session.scalars(similar_users_statement))
+        if not similar_user_ids:
+            return {}
+
+        ratings_statement = select(UserMedia.media_id, UserMedia.rating).where(
+            UserMedia.user_id.in_(similar_user_ids),
+            UserMedia.rating.is_not(None),
+        )
+        rows = list(await self._session.execute(ratings_statement))
+        if len(rows) < min_ratings:
+            return {}
+
+        ratings_by_media: dict[int, list[int]] = {}
+        for media_id, rating in rows:
+            if isinstance(rating, int):
+                ratings_by_media.setdefault(media_id, []).append(rating)
+        return {
+            media_id: min((sum(ratings) / len(ratings)) / 10, 1.0)
+            for media_id, ratings in ratings_by_media.items()
+        }
