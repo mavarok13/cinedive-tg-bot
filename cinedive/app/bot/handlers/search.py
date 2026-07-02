@@ -180,6 +180,7 @@ async def _persist_media_details(
         media_type=str(media_type),
         original_title=_original_title(details, str(media_type)),
         original_language=details.get("original_language"),
+        origin_country=_origin_country(details, str(media_type)),
         release_year=_release_year(details.get("release_date") or details.get("first_air_date")),
         poster_path=details.get("poster_path"),
         backdrop_path=details.get("backdrop_path"),
@@ -253,6 +254,25 @@ def _runtime_minutes(details: dict[str, Any], media_type: str) -> int | None:
         for runtime in runtimes:
             if isinstance(runtime, int) and runtime > 0:
                 return runtime
+    return None
+
+
+def _origin_country(details: dict[str, Any], media_type: str) -> str | None:
+    if media_type == "tv":
+        countries = details.get("origin_country")
+        if isinstance(countries, list):
+            for country in countries:
+                if isinstance(country, str) and country:
+                    return country[:8]
+
+    production_countries = details.get("production_countries")
+    if isinstance(production_countries, list):
+        for country_data in production_countries:
+            if not isinstance(country_data, dict):
+                continue
+            country = country_data.get("iso_3166_1")
+            if isinstance(country, str) and country:
+                return country[:8]
     return None
 
 

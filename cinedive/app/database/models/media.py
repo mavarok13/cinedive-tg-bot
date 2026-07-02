@@ -31,6 +31,7 @@ class MediaItem(TimestampMixin, Base):
     media_type: Mapped[str] = mapped_column(String(16), nullable=False)
     original_title: Mapped[str | None] = mapped_column(String(512))
     original_language: Mapped[str | None] = mapped_column(String(16))
+    origin_country: Mapped[str | None] = mapped_column(String(8))
     release_year: Mapped[int | None] = mapped_column(Integer)
     poster_path: Mapped[str | None] = mapped_column(String(512))
     backdrop_path: Mapped[str | None] = mapped_column(String(512))

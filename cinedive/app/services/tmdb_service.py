@@ -54,6 +54,7 @@ class TMDBService:
         genre_ids: set[int],
         max_runtime_minutes: int | None,
         page: int = 1,
+        sort_by: str = "vote_average.desc",
     ) -> list[dict[str, Any]]:
         if media_type not in {"movie", "tv"}:
             raise ValueError("media_type must be 'movie' or 'tv'.")
@@ -64,7 +65,7 @@ class TMDBService:
             "include_adult": "false",
             "include_video": "false",
             "page": page,
-            "sort_by": "vote_average.desc",
+            "sort_by": sort_by,
             "vote_average.gte": 6.0,
             "vote_count.gte": 100,
             date_key: "1990-01-01",

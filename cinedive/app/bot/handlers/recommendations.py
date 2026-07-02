@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx
@@ -16,8 +16,10 @@ from cinedive.app.database.repositories import (
     GenreRepository,
     MediaRepository,
     MoodSessionRepository,
+    RecommendationQueueRepository,
     UserGenreRepository,
     UserMediaRepository,
+    UserPreferencePenaltyRepository,
     UserRepository,
 )
 from cinedive.app.localization import t, user_locale
@@ -27,7 +29,9 @@ from cinedive.app.services.tmdb_service import TMDBService
 
 router = Router(name="recommendations")
 
-MAX_DISCOVER_RESULTS = 8
+MAX_DISCOVER_RESULTS = 12
+RECOMMENDATION_BATCH_SIZE = 30
+PENALTY_TTL_DAYS = 45
 
 
 @router.message(F.text.func(lambda text: is_menu_button_text(text, "recommend")))
@@ -69,7 +73,11 @@ async def save_mood_preset(
         await callback.message.answer(t(locale, "errors.use_start"))
         return
 
-    mood_session = await MoodSessionRepository(session).create(
+    now = datetime.now(UTC)
+    mood_repo = MoodSessionRepository(session)
+    await RecommendationQueueRepository(session).clear_for_user(user_id=user.id)
+    await mood_repo.expire_active(user_id=user.id, now=now)
+    mood_session = await mood_repo.create(
         user_id=user.id,
         content_type=preset.content_type,
         mood_tags=mood_service.mood_tags(preset),
@@ -95,15 +103,6 @@ async def recommend_next(callback: CallbackQuery, session: AsyncSession) -> None
         await callback.message.answer(t(locale, "errors.use_start"))
         return
 
-    media_id = _optional_media_id(callback.data)
-    if media_id is not None:
-        await UserMediaRepository(session).hide_temporarily(
-            user_id=user.id,
-            media_id=media_id,
-            hidden_until=MoodService().expires_at(),
-        )
-        await session.commit()
-
     mood_session = await MoodSessionRepository(session).get_active(user_id=user.id, now=datetime.now(UTC))
     if mood_session is None:
         await _ask_mood(callback.message, None, locale)
@@ -128,14 +127,16 @@ async def hide_media(callback: CallbackQuery, session: AsyncSession) -> None:
         await callback.message.answer(t(locale, "errors.use_start"))
         return
 
+    mood_session = await MoodSessionRepository(session).get_active(user_id=user.id, now=datetime.now(UTC))
+    hidden_until = mood_session.expires_at if mood_session is not None else MoodService().expires_at()
     await UserMediaRepository(session).hide_temporarily(
         user_id=user.id,
         media_id=media_id,
-        hidden_until=MoodService().expires_at(),
+        hidden_until=hidden_until,
     )
+    await _apply_hide_penalties(session=session, user_id=user.id, media_id=media_id)
     await session.commit()
 
-    mood_session = await MoodSessionRepository(session).get_active(user_id=user.id, now=datetime.now(UTC))
     if mood_session is None:
         await callback.message.answer(t(locale, "recommendations.hidden"))
         return
@@ -156,6 +157,60 @@ async def _send_recommendation(
     locale: str,
     mood_session: UserMoodSession,
 ) -> None:
+    now = datetime.now(UTC)
+    media_repo = MediaRepository(session)
+    queue_repo = RecommendationQueueRepository(session)
+    queue_item = await queue_repo.next_unshown(
+        user_id=user_id,
+        mood_session_id=mood_session.id,
+        now=now,
+    )
+    if queue_item is None:
+        await _build_recommendation_queue(
+            session=session,
+            user_id=user_id,
+            locale=locale,
+            mood_session=mood_session,
+            now=now,
+        )
+        queue_item = await queue_repo.next_unshown(
+            user_id=user_id,
+            mood_session_id=mood_session.id,
+            now=now,
+        )
+
+    if queue_item is None:
+        await message.answer(t(locale, "recommendations.no_candidates"))
+        return
+
+    card = await media_repo.get_card(
+        media_id=queue_item.media_id,
+        language_code=_translation_language(locale),
+    )
+    if card is None:
+        await queue_repo.mark_shown(queue_item_id=queue_item.id, shown_at=now)
+        await session.commit()
+        await message.answer(t(locale, "recommendations.no_candidates"))
+        return
+
+    await queue_repo.mark_shown(queue_item_id=queue_item.id, shown_at=now)
+    await UserMediaRepository(session).mark_shown(
+        user_id=user_id,
+        media_id=queue_item.media_id,
+        shown_at=now,
+    )
+    await session.commit()
+    await send_media_card(message, card, get_settings(), locale)
+
+
+async def _build_recommendation_queue(
+    *,
+    session: AsyncSession,
+    user_id: int,
+    locale: str,
+    mood_session: UserMoodSession,
+    now: datetime,
+) -> None:
     media_repo = MediaRepository(session)
     favorite_genre_ids = await UserGenreRepository(session).list_external_ids(user_id=user_id)
     mood_genre_ids = _mood_genre_ids(mood_session.mood_tags)
@@ -171,24 +226,77 @@ async def _send_recommendation(
         language_code=_translation_language(locale),
         content_type=mood_session.content_type,
         max_runtime_minutes=mood_session.max_runtime_minutes,
-        now=datetime.now(UTC),
+        now=now,
+        limit=200,
     )
-    collaborative_scores = await UserMediaRepository(session).collaborative_rating_scores(
+    user_media_repo = UserMediaRepository(session)
+    collaborative_scores = await user_media_repo.collaborative_rating_scores(
         user_id=user_id,
         favorite_genre_ids=favorite_genre_ids,
     )
-    recommendations = RecommendationService().recommend(
+    wishlist_scores = await user_media_repo.collaborative_wishlist_scores(
+        user_id=user_id,
+        favorite_genre_ids=favorite_genre_ids,
+    )
+    penalties = await UserPreferencePenaltyRepository(session).active_penalties(user_id=user_id, now=now)
+    queue_items = RecommendationService().build_queue(
         candidates,
         favorite_genre_ids=favorite_genre_ids,
         mood_genre_ids=mood_genre_ids,
         collaborative_scores=collaborative_scores,
-        limit=1,
+        wishlist_scores=wishlist_scores,
+        preference_penalties=penalties,
+        batch_size=RECOMMENDATION_BATCH_SIZE,
     )
-    if not recommendations:
-        await message.answer(t(locale, "recommendations.no_candidates"))
+    if not queue_items:
+        return
+    await RecommendationQueueRepository(session).enqueue_batch(
+        user_id=user_id,
+        mood_session_id=mood_session.id,
+        expires_at=mood_session.expires_at,
+        items=queue_items,
+    )
+    await session.commit()
+
+
+async def _apply_hide_penalties(*, session: AsyncSession, user_id: int, media_id: int) -> None:
+    features = await MediaRepository(session).get_recommendation_features(media_id=media_id)
+    if features is None:
         return
 
-    await send_media_card(message, recommendations[0].card, get_settings(), locale)
+    repo = UserPreferencePenaltyRepository(session)
+    expires_at = datetime.now(UTC) + timedelta(days=PENALTY_TTL_DAYS)
+    await repo.add_penalty(
+        user_id=user_id,
+        feature_type="media_type",
+        feature_value=features.media_type,
+        weight_delta=0.15,
+        expires_at=expires_at,
+    )
+    if features.original_language:
+        await repo.add_penalty(
+            user_id=user_id,
+            feature_type="original_language",
+            feature_value=features.original_language,
+            weight_delta=0.25,
+            expires_at=expires_at,
+        )
+    if features.origin_country:
+        await repo.add_penalty(
+            user_id=user_id,
+            feature_type="origin_country",
+            feature_value=features.origin_country,
+            weight_delta=0.35,
+            expires_at=expires_at,
+        )
+    for genre_id in features.genre_external_ids:
+        await repo.add_penalty(
+            user_id=user_id,
+            feature_type="genre",
+            feature_value=str(genre_id),
+            weight_delta=0.2,
+            expires_at=expires_at,
+        )
 
 
 async def _seed_discover_candidates(
@@ -203,18 +311,33 @@ async def _seed_discover_candidates(
     try:
         tmdb = TMDBService(settings)
         for media_type in _discover_media_types(mood_session.content_type):
-            results = await tmdb.discover_media(
-                media_type=media_type,
-                language=_tmdb_language(locale),
-                genre_ids=_discover_genre_ids(media_type, genre_ids),
-                max_runtime_minutes=mood_session.max_runtime_minutes,
-            )
-            for result in results[:MAX_DISCOVER_RESULTS]:
+            results = []
+            for sort_by, page in (
+                ("vote_average.desc", 1),
+                ("popularity.desc", 1),
+                ("vote_count.desc", 1),
+                ("vote_average.desc", 2),
+            ):
+                results.extend(
+                    await tmdb.discover_media(
+                        media_type=media_type,
+                        language=_tmdb_language(locale),
+                        genre_ids=_discover_genre_ids(media_type, genre_ids),
+                        max_runtime_minutes=mood_session.max_runtime_minutes,
+                        sort_by=sort_by,
+                        page=page,
+                    )
+                )
+            seen_tmdb_ids: set[int] = set()
+            for result in results:
                 tmdb_id = result.get("id")
-                if not isinstance(tmdb_id, int):
+                if not isinstance(tmdb_id, int) or tmdb_id in seen_tmdb_ids:
                     continue
+                seen_tmdb_ids.add(tmdb_id)
                 details = await _fetch_details(tmdb, tmdb_id, media_type, _tmdb_language(locale))
                 await _persist_media_details(session, tmdb, details, media_type, locale)
+                if len(seen_tmdb_ids) >= MAX_DISCOVER_RESULTS:
+                    break
         await session.commit()
     except (httpx.HTTPError, RuntimeError, ValueError):
         await session.rollback()
@@ -282,6 +405,7 @@ async def _persist_media_details(
         media_type=media_type,
         original_title=_original_title(details, media_type),
         original_language=details.get("original_language"),
+        origin_country=_origin_country(details, media_type),
         release_year=_release_year(details.get("release_date") or details.get("first_air_date")),
         poster_path=details.get("poster_path"),
         backdrop_path=details.get("backdrop_path"),
@@ -354,6 +478,25 @@ def _runtime_minutes(details: dict[str, Any], media_type: str) -> int | None:
         for runtime in runtimes:
             if isinstance(runtime, int) and runtime > 0:
                 return runtime
+    return None
+
+
+def _origin_country(details: dict[str, Any], media_type: str) -> str | None:
+    if media_type == "tv":
+        countries = details.get("origin_country")
+        if isinstance(countries, list):
+            for country in countries:
+                if isinstance(country, str) and country:
+                    return country[:8]
+
+    production_countries = details.get("production_countries")
+    if isinstance(production_countries, list):
+        for country_data in production_countries:
+            if not isinstance(country_data, dict):
+                continue
+            country = country_data.get("iso_3166_1")
+            if isinstance(country, str) and country:
+                return country[:8]
     return None
 
 

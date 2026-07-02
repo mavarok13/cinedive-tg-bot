@@ -32,7 +32,7 @@ Handlers should not contain SQLAlchemy query construction, TMDB HTTP calls, or r
 Files: `cinedive/app/services/`
 
 - `TMDBService` wraps TMDB HTTP requests.
-- `RecommendationService` is reserved for simple non-ML recommendation ranking.
+- `RecommendationService` builds non-ML recommendation batches from personalized scores, weighted buckets, and diversity caps.
 - `MoodService` owns mood-session expiration rules.
 - `SoundtrackService` builds external soundtrack links to legal music platforms for the MVP.
 
@@ -59,8 +59,10 @@ The initial schema contains:
 - `media_items`: normalized TMDB movie and TV records.
 - `media_translations`: localized titles and overviews.
 - `media_genres`: media-to-genre links.
-- `user_media`: wishlist, watched, hidden, ignored statuses and optional 1-10 rating.
+- `user_media`: wishlist, watched, hidden, ignored, shown history, interaction timestamps, shown counts, and optional 1-10 rating.
 - `user_mood_sessions`: temporary mood preferences with expiry.
+- `recommendation_queue_items`: active mood-session recommendation batches with bucket, score, position, shown marker, and expiry.
+- `user_preference_penalties`: expiring negative preference signals by genre, origin country, original language, and media type.
 - `soundtracks`: future cache for external soundtrack platform metadata and links.
 
 The `media_items` table has a unique constraint on `(source, external_id, media_type)`. `user_media` uses `(user_id, media_id)` as the primary key.
@@ -80,8 +82,8 @@ The `media_items` table has a unique constraint on `(source, external_id, media_
 11. The handler renders a localized media card with poster, metadata, overview, and existing action callbacks.
 12. Wishlist callbacks store or remove `user_media` rows with `wishlist` status and can reopen persisted media cards.
 13. Watched and rating callbacks use `RatingStates` to ask for a 1-10 rating and persist `watched`, `rating`, and `rated_at` through `UserMediaRepository`.
-14. Recommend checks for an active 24-hour mood session, asks for a mood preset when needed, and renders a scored recommendation from persisted media.
-15. Next/Hide callbacks temporarily hide media for the mood window so recommendation candidates rotate.
+14. Recommend checks for an active 24-hour mood session, asks for a mood preset when needed, and renders the next unshown item from a persisted recommendation queue.
+15. Next advances to the next queued item without adding a strong negative signal; Hide temporarily excludes the current item and stores expiring feature penalties.
 
 ## MVP Data Flow
 
@@ -107,8 +109,21 @@ Recommendation flow:
 3. Handler seeds candidates from TMDB Discover using favorite genres, mood genres, content type, rating, vote count, runtime, and release-date filters.
 4. Discovered candidates are fetched through `TMDBService`, persisted as normal media items/translations/genre links, and then loaded from `MediaRepository`.
 5. `MediaRepository` excludes watched, ignored, hidden, and already-rated media.
-6. `RecommendationService` ranks candidates with a simple non-ML score from favorite genre match, mood genre match, TMDB rating, vote count, and collaborative rating boost when similar-user ratings exist.
-7. Handler renders the next media card.
+6. `RecommendationService` scores candidates from favorite genres, mood genres, normalized TMDB rating, vote-count confidence, similar-user ratings, similar-user wishlist signals, preference penalties, and repetition penalties.
+7. The service composes a queue from high-confidence, medium-confidence, and exploration buckets using weighted randomness plus diversity caps for country, language, and media type.
+8. Queue rows are persisted in `recommendation_queue_items`; the handler marks queue rows and `user_media.last_shown_at` when a card is emitted.
+9. Handler renders the next media card.
+
+Implemented recommendation redesign:
+
+1. Mood sessions are the temporary feed context. Opening a new mood session expires previous active sessions and clears the user's queue.
+2. `recommendation_queue_items` stores active batches for a user and mood session, including media, position, bucket, score, shown marker, creation time, and expiry.
+3. Long-lived history stays in `user_media`, including shown history, watched/rated state, wishlist timestamps, hidden/ignored state, and `last_shown_at`.
+4. `user_preference_penalties` stores expiring negative preference signals by genre, origin country, original language, and media type.
+5. Batch generation scores candidates from favorite genres, mood genres, normalized TMDB rating, vote-count confidence, similar-user ratings, similar-user wishlist signals, and preference penalties.
+6. Candidate pools exclude watched, rated, ignored, currently hidden, recently shown, and low-quality media cards without posters or usable localized/fallback descriptions whenever practical.
+7. Queue composition uses bucketed weighted randomness: mostly high-confidence items, a smaller medium-confidence share, and a small exploration share.
+8. Batch generation enforces diversity caps so one country, original language, or media type cannot dominate the feed.
 
 Soundtrack flow:
 

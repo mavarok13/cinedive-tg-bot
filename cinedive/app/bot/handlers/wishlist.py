@@ -75,7 +75,7 @@ async def open_wishlist_item(callback: CallbackQuery, session: AsyncSession) -> 
         return
 
     user_media = await UserMediaRepository(session).get(user_id=user.id, media_id=media_id)
-    if user_media is None or user_media.status != "wishlist":
+    if user_media is None or (user_media.status != "wishlist" and user_media.wishlist_at is None):
         await callback.message.answer(t(locale, "wishlist.not_in_wishlist"))
         return
 

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,6 +23,17 @@ class MediaCardData:
 @dataclass(frozen=True)
 class RecommendationCandidate:
     card: MediaCardData
+    genre_external_ids: set[int]
+    original_language: str | None
+    origin_country: str | None
+    shown_count: int = 0
+
+
+@dataclass(frozen=True)
+class RecommendationFeatureData:
+    media_type: str
+    original_language: str | None
+    origin_country: str | None
     genre_external_ids: set[int]
 
 
@@ -58,6 +69,10 @@ class MediaRepository:
         if translation is not None:
             title = translation.title
             overview = translation.overview
+        if language_code != "en-US" and not overview:
+            fallback_translation = await self._get_translation(media_id=media.id, language_code="en-US")
+            if fallback_translation is not None:
+                overview = fallback_translation.overview
 
         return MediaCardData(
             id=media.id,
@@ -71,6 +86,17 @@ class MediaRepository:
             tmdb_vote_count=media.tmdb_vote_count,
         )
 
+    async def get_recommendation_features(self, *, media_id: int) -> RecommendationFeatureData | None:
+        media = await self._session.get(MediaItem, media_id)
+        if media is None:
+            return None
+        return RecommendationFeatureData(
+            media_type=media.media_type,
+            original_language=media.original_language,
+            origin_country=media.origin_country,
+            genre_external_ids=await self._genre_external_ids(media_id=media.id),
+        )
+
     async def list_recommendation_candidates(
         self,
         *,
@@ -80,6 +106,7 @@ class MediaRepository:
         now: datetime,
         max_runtime_minutes: int | None = None,
         limit: int = 100,
+        shown_cooldown_days: int = 30,
     ) -> list[RecommendationCandidate]:
         statement = select(MediaItem)
         if content_type in {"movie", "tv"}:
@@ -89,6 +116,7 @@ class MediaRepository:
                 (MediaItem.runtime_minutes.is_(None))
                 | (MediaItem.runtime_minutes <= max_runtime_minutes)
             )
+        statement = statement.where(MediaItem.poster_path.is_not(None))
         statement = statement.order_by(
             MediaItem.tmdb_rating.desc().nullslast(),
             MediaItem.tmdb_vote_count.desc().nullslast(),
@@ -98,15 +126,18 @@ class MediaRepository:
         candidates: list[RecommendationCandidate] = []
         for media in media_items:
             user_media = await self._get_user_media(user_id=user_id, media_id=media.id)
-            if _is_excluded_user_media(user_media, now):
+            if _is_excluded_user_media(user_media, now, shown_cooldown_days):
                 continue
             card = await self.get_card(media_id=media.id, language_code=language_code)
-            if card is None:
+            if card is None or not card.poster_path or not card.overview:
                 continue
             candidates.append(
                 RecommendationCandidate(
                     card=card,
                     genre_external_ids=await self._genre_external_ids(media_id=media.id),
+                    original_language=media.original_language,
+                    origin_country=media.origin_country,
+                    shown_count=user_media.shown_count if user_media is not None else 0,
                 )
             )
         return candidates
@@ -119,6 +150,7 @@ class MediaRepository:
         media_type: str,
         original_title: str | None,
         original_language: str | None,
+        origin_country: str | None,
         release_year: int | None,
         poster_path: str | None,
         backdrop_path: str | None,
@@ -139,6 +171,7 @@ class MediaRepository:
         media.imdb_id = imdb_id
         media.original_title = original_title
         media.original_language = original_language
+        media.origin_country = origin_country
         media.release_year = release_year
         media.poster_path = poster_path
         media.backdrop_path = backdrop_path
@@ -201,11 +234,17 @@ class MediaRepository:
         await self._session.flush()
 
 
-def _is_excluded_user_media(user_media: UserMedia | None, now: datetime) -> bool:
+def _is_excluded_user_media(
+    user_media: UserMedia | None,
+    now: datetime,
+    shown_cooldown_days: int,
+) -> bool:
     if user_media is None:
         return False
     if user_media.status in {"watched", "ignored"} or user_media.rating is not None:
         return True
     if user_media.status == "hidden":
         return user_media.temporary_hidden_until is None or user_media.temporary_hidden_until > now
+    if user_media.last_shown_at is not None:
+        return user_media.last_shown_at > now - timedelta(days=shown_cooldown_days)
     return False

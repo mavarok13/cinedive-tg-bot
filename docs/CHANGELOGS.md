@@ -1,5 +1,20 @@
 # Changelogs
 
+## 2026-07-02
+
+- Implemented Stage 6 Recommendation Feed Redesign in `cinedive/app/bot/handlers/recommendations.py`, `cinedive/app/services/recommendation_service.py`, database models, and repositories.
+- Added `alembic/versions/0002_recommendation_feed_redesign.py` with `recommendation_queue_items`, `user_preference_penalties`, `media_items.origin_country`, and user-media shown/interaction timestamp fields.
+- Recommendation queues are now tied to active mood sessions, rebuilt when exhausted, composed from high/medium/exploration weighted buckets, and filtered for watched/rated/ignored/hidden/recently shown or low-quality cards.
+- Hide now adds expiring feature penalties for genre, origin country, original language, and media type; Next only advances the queue.
+- Updated `AGENTS.md`, `docs/INFO.md`, `docs/ARCHITECTURE.md`, and `docs/ROADMAP.md` from planned redesign to implemented behavior.
+- Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. Ruff was not available locally, so lint verification was skipped.
+
+## 2026-07-02
+
+- Updated `AGENTS.md`, `docs/INFO.md`, `docs/ARCHITECTURE.md`, and `docs/ROADMAP.md` with the target recommendation feed redesign.
+- Added `docs/RECOMMENDATION_REDESIGN_PROMPT.md` with an English implementation prompt covering mood-session queues, user-media history, preference penalties, batch bucket composition, diversity caps, and poster/description filtering.
+- Verification: documentation-only change; no runtime checks were run.
+
 ## 2026-06-28
 
 - Implemented Stage 5 in `cinedive/app/bot/handlers/soundtrack.py`, `cinedive/app/services/soundtrack_service.py`, and `cinedive/app/database/repositories/soundtrack_repository.py`.

@@ -1,5 +1,20 @@
 # Last Changes
 
+## 2026-07-02
+
+- Implemented Stage 6 recommendation feed redesign with mood-session-bound queues, shown-history memory, expiring preference penalties, bucketed weighted batch selection, diversity caps, and poster/overview candidate-quality filtering.
+- Added Alembic migration `0002_recommendation_feed_redesign` for queue rows, preference penalties, origin-country metadata, and user-media interaction timestamps/counters.
+- Changed recommendation Next to remain neutral while Hide now temporarily excludes the exact item and adds feature penalties.
+
+Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. `py -3.11 -m ruff check .` was skipped because Ruff is not installed in the local Python 3.11 environment.
+
+## 2026-07-02
+
+- Documented the planned recommendation feed redesign: mood-session-bound queues, batch buckets, shown-history memory, decaying preference penalties, diversity caps, and candidate-quality filtering for posters/descriptions.
+- Added `docs/RECOMMENDATION_REDESIGN_PROMPT.md` as an English implementation prompt for a future AI coding task.
+
+Verification: documentation-only change; no runtime checks were run.
+
 ## 2026-06-28
 
 - Implemented Stage 5 soundtrack platform links.

@@ -65,6 +65,19 @@ Status: complete.
 - Optionally cache platform metadata and external links in `soundtracks`.
 - Do not download, proxy, upload, or send music files.
 
+## Stage 6: Recommendation Feed Redesign
+
+Status: complete.
+
+- Replace deterministic top-1 recommendation output with mood-session-bound recommendation queues.
+- Extend user-media memory to track shown history, cooldowns, wishlist/watched/rated/hidden interactions, and explicit interaction timestamps.
+- Add `recommendation_queue_items` for active batches and `user_preference_penalties` for decaying negative signals by genre, country/original language, media type, and similar features.
+- Generate batches from personalized scoring that combines favorite genres, mood genres, normalized TMDB rating, vote-count confidence, similar-user ratings, similar-user wishlist signals, and preference penalties.
+- Compose each queue from high-confidence, medium-confidence, and exploration buckets using weighted randomness instead of deterministic top-N selection.
+- Exclude low-quality recommendation cards without posters or usable descriptions, plus watched, rated, ignored, hidden, and recently shown media.
+- Add diversity caps so a single country, original language, genre cluster, or media type cannot dominate a batch.
+- Make Hide add decaying feature penalties while Next remains neutral or only weak negative feedback.
+
 ## Later: Party/Match System
 
 - Design multi-user session model.
