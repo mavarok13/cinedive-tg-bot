@@ -13,6 +13,35 @@ class SoundtrackRepository:
         result = await self._session.scalars(statement)
         return list(result)
 
+    async def get_by_media_and_source(self, *, media_id: int, source: str) -> Soundtrack | None:
+        statement = select(Soundtrack).where(
+            Soundtrack.media_id == media_id,
+            Soundtrack.source == source,
+        )
+        return await self._session.scalar(statement)
+
+    async def upsert(
+        self,
+        *,
+        media_id: int,
+        title: str,
+        source: str,
+        external_url: str,
+        artist: str | None = None,
+        preview_url: str | None = None,
+    ) -> Soundtrack:
+        soundtrack = await self.get_by_media_and_source(media_id=media_id, source=source)
+        if soundtrack is None:
+            soundtrack = Soundtrack(media_id=media_id, source=source)
+            self._session.add(soundtrack)
+
+        soundtrack.title = title
+        soundtrack.artist = artist
+        soundtrack.external_url = external_url
+        soundtrack.preview_url = preview_url
+        await self._session.flush()
+        return soundtrack
+
     async def create(
         self,
         *,

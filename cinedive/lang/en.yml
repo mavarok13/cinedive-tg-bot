@@ -48,28 +48,62 @@ media_types:
   tv: "TV show"
 
 recommendations:
-  placeholder: "Recommendations are reserved for the next stage: mood check, genre match, and watched/hidden filters."
+  no_candidates: "I could not find a fresh match for this mood right now. Try changing the mood or updating your favorite genres."
+  hidden: "Hidden for this mood session."
+
+mood:
+  ask: "What are you in the mood for today? This choice is temporary."
+  saved: "Mood saved: <b>{mood}</b>."
+  unknown: "Unknown mood option."
+  presets:
+    balanced: "Balanced"
+    fun: "Fun"
+    intense: "Intense"
+    cozy: "Cozy movie"
+    short: "Short movie"
+    series: "TV show"
 
 wishlist:
-  placeholder: "Wishlist storage is ready. The list UI will be implemented after media cards."
+  title: "Your wishlist"
+  empty: "Your wishlist is empty. Search for a movie or TV show and add it from the media card."
+  added: "Added <b>{title}</b> to your wishlist."
+  removed: "Removed from your wishlist."
+  invalid_media: "This media card is no longer available. Search for it again."
+  not_in_wishlist: "This item is not in your wishlist anymore."
 
 rating:
-  placeholder: "Rating flow will be implemented after media cards."
+  ask: "Rate <b>{title}</b> from 1 to 10."
+  invalid: "Send a number from 1 to 10."
+  expired: "Rating request expired. Open the media card and try again."
+  saved: "Saved your rating: {rating}/10."
+  invalid_media: "This media card is no longer available. Search for it again."
 
 watched:
-  placeholder: "Watched flow will ask for a 1-10 rating in the next stage."
+  placeholder: "Marked as watched."
 
 soundtrack:
-  placeholder: "Soundtrack links will use external search URLs, no music files."
+  title: "Soundtrack links for <b>{title}</b>"
+  disclaimer: "External legal music-platform links only. No audio files are sent."
+  invalid_media: "This media card is no longer available. Search for it again."
+  platforms:
+    deezer: "Deezer direct match"
+    deezer_search: "Deezer search"
+    youtube_music: "YouTube Music search"
+    spotify: "Spotify search"
+    apple_music: "Apple Music search"
+    yandex_music: "Yandex Music search"
 
 media_card:
   to_wishlist: "❤️ To wishlist"
+  remove_wishlist: "🗑 Remove"
   watched: "✅ Watched"
   rate: "⭐ Rate"
-  not_now: "🙈 Not now"
+  not_now: "🙈 Hide"
   next: "🎲 Next"
   soundtrack: "🎵 Soundtrack"
   tmdb_rating: "TMDB: {rating}/10 ({votes} votes)"
+  genres: "Genres: {genres}"
+  country: "Country: {country}"
   runtime: "Runtime: {minutes} min"
 
 genres:

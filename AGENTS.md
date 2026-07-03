@@ -67,9 +67,26 @@ If the index is missing, run `codebase-index index`. If it is stale, run `codeba
 - Keep SQLAlchemy queries inside repositories; services should depend on repositories instead of raw sessions when business logic grows.
 - Do not implement the party/match system until explicitly requested. Keep schemas and services extensible, but avoid speculative code.
 - Do not implement ML recommendations in the MVP. Use simple score-based ranking when recommendations are added.
-- Do not send or download soundtrack files. Soundtrack MVP behavior should return external links only.
+- Do not download, upload, proxy, or send soundtrack/music files. Soundtrack behavior should return external links to legal music platforms only.
+- Soundtrack integrations may use official/public APIs to resolve platform links. If a confident match cannot be resolved, fall back to platform search links.
+- Do not use unofficial downloaders, ripping tools, scraping that violates platform terms, or Telegram audio delivery for copyrighted music. Cache only metadata and external URLs, never audio files.
 - Do not commit secrets or `.env`; use `.env.example` for documented variables.
 - Escape dynamic user-provided text before inserting it into HTML Telegram messages.
+
+## Recommendation System Guardrails
+
+The recommendation implementation is a batch-based, non-ML feed. Preserve this shape unless the user explicitly requests a larger redesign.
+
+- Keep mood sessions as the temporary recommendation context. When a new mood session is opened, close or delete the previous active mood session for that user and clear its queue.
+- Store the current recommendation batch in `recommendation_queue_items`, tied to `user_id` and the active `user_mood_session`. Delete or ignore queue items when the mood session expires.
+- Keep long-lived user/media memory in `user_media`, not in the queue. Track shown history, watched/rated state, wishlist state, hidden/ignored state, and timestamps such as `last_shown_at`.
+- Build each batch from personalized scoring: favorite genres, mood genres, normalized TMDB rating, vote-count confidence, user preference penalties, ratings from similar users, and wishlist signals from similar users.
+- Exclude poor media-card candidates from recommendation pools when practical: no poster, no localized/fallback overview, watched, rated, ignored, currently hidden, or recently shown.
+- Fill each batch by buckets rather than deterministic top-1 ranking: a large high-confidence share, a smaller medium-confidence share, and a small exploration share that may differ from the current genres/mood but has enough quality or collaborative signal.
+- Shuffle within buckets with score weighting and enforce diversity caps so one country, original language, genre cluster, or media type cannot dominate a batch.
+- Treat `Next` as neutral and `Hide` as a strong negative signal. Hiding should hide the exact media item and add expiring penalties for related features such as genre, origin country, original language, and media type.
+- Store feature penalties in `user_preference_penalties` with accumulated weight, timestamps, and expiry behavior. Penalties should recover over time instead of permanently banning a feature.
+- Keep the approach non-ML for now. Do not add external recommendation APIs, scraping, or copyrighted-content download/proxy behavior.
 
 ## Current Scope Guardrails
 
@@ -77,9 +94,10 @@ If the index is missing, run `codebase-index index`. If it is stale, run `codeba
 - `BOT_MODE=webhook` starts an aiohttp web server, registers the Telegram webhook with `secret_token`, and exposes `GET /health`.
 - `BOT_MODE=polling` is local-development only and deletes any existing webhook before polling.
 - Main menu buttons exist for Recommend, Wishlist, Search, and Profile.
-- Search is wired to TMDB and persists selected media cards; recommendation, wishlist, rating, mood, and soundtrack handlers are intentionally placeholders until the next MVP stages.
+- Search is wired to TMDB and persists selected media cards. Wishlist, watched, rating, mood, queue-based recommendation, and soundtrack platform-link flows are implemented.
 - SQLAlchemy models and the initial Alembic migration define the planned persistence model.
-- TMDB integration exists as a reusable async client but is not wired into the search UI yet.
+- Recommendation batches use mood-session queues, expiring preference penalties, shown-history cooldowns, candidate-quality filters, weighted buckets, and diversity caps.
+- TMDB integration exists as a reusable async client and is wired into the search UI.
 - GitHub Actions deployment publishes the Docker image to GHCR, runs Alembic migrations on the remote host, and restarts Docker Compose.
 
 ## Local Verification Policy

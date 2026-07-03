@@ -1,5 +1,76 @@
 # Changelogs
 
+## 2026-07-03
+
+- Updated `MediaCardData`, `MediaRepository.get_card`, shared media-card rendering, and EN/RU locale labels so both search-selected media cards and recommendation cards display persisted genres and origin country.
+- Verification: `python -m compileall cinedive alembic` passed. `git diff --check` reported only Git line-ending normalization warnings and no whitespace errors. Ruff was not installed locally, so lint verification was skipped.
+
+## 2026-07-03
+
+- Added `alembic/versions/0003_discovery_state.py` and the `RecommendationDiscoveryState` model for persistent per-mood-session TMDB Discover cursors keyed by media type, sort order, genre strategy, and filter strategy.
+- Updated recommendation repositories so queue refills append to `recommendation_queue_items`, preserve shown rows, exclude same-session queued/shown media, and atomically claim the next unshown item with row locking.
+- Expanded recommendation discovery to rotate bounded TMDB pages across popularity, vote count, vote average, release-date/air-date, genre, media-type, language, and country strategies before falling back to persisted local candidates.
+- Updated recommendation no-candidates locale copy and persistent docs for the endless discovery feed behavior.
+- Verification: `python -m compileall cinedive alembic` passed. `git diff --check` reported only Git line-ending normalization warnings and no whitespace errors. Ruff was not installed locally, so lint verification was skipped.
+
+## 2026-07-03
+
+- Renamed `alembic/versions/0002_recommendation_feed_redesign.py` to `alembic/versions/0002_recommendation_feed.py` and shortened its `revision` value to avoid PostgreSQL truncation errors when Alembic updates `alembic_version.version_num`.
+- Verification: `python -m compileall cinedive alembic` and `git diff --check` passed.
+
+## 2026-07-02
+
+- Implemented Stage 6 Recommendation Feed Redesign in `cinedive/app/bot/handlers/recommendations.py`, `cinedive/app/services/recommendation_service.py`, database models, and repositories.
+- Added `alembic/versions/0002_recommendation_feed.py` with `recommendation_queue_items`, `user_preference_penalties`, `media_items.origin_country`, and user-media shown/interaction timestamp fields.
+- Recommendation queues are now tied to active mood sessions, rebuilt when exhausted, composed from high/medium/exploration weighted buckets, and filtered for watched/rated/ignored/hidden/recently shown or low-quality cards.
+- Hide now adds expiring feature penalties for genre, origin country, original language, and media type; Next only advances the queue.
+- Updated `AGENTS.md`, `docs/INFO.md`, `docs/ARCHITECTURE.md`, and `docs/ROADMAP.md` from planned redesign to implemented behavior.
+- Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. Ruff was not available locally, so lint verification was skipped.
+
+## 2026-07-02
+
+- Updated `AGENTS.md`, `docs/INFO.md`, `docs/ARCHITECTURE.md`, and `docs/ROADMAP.md` with the target recommendation feed redesign.
+- Added `docs/RECOMMENDATION_REDESIGN_PROMPT.md` with an English implementation prompt covering mood-session queues, user-media history, preference penalties, batch bucket composition, diversity caps, and poster/description filtering.
+- Verification: documentation-only change; no runtime checks were run.
+
+## 2026-06-28
+
+- Implemented Stage 5 in `cinedive/app/bot/handlers/soundtrack.py`, `cinedive/app/services/soundtrack_service.py`, and `cinedive/app/database/repositories/soundtrack_repository.py`.
+- Added Deezer public API direct soundtrack matching, legal fallback search links for Deezer, YouTube Music, Spotify, Apple Music, and Yandex Music, and metadata/URL-only caching in `soundtracks`.
+- Updated English/Russian soundtrack UI copy and persistent docs for Stage 5 completion.
+- Added `docs/SETUP.md` with API, local run, production webhook, and GitHub Actions deployment parameter instructions.
+- Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. Ruff was not available locally, so lint verification was skipped.
+
+## 2026-06-28
+
+- Implemented Stage 4.5 Hybrid Recommendation Expansion in `cinedive/app/bot/handlers/recommendations.py`, `cinedive/app/services/tmdb_service.py`, `cinedive/app/services/recommendation_service.py`, and repositories.
+- Added TMDB Discover candidate sourcing, detail fetches, local persistence before ranking, content-based fallback behavior, and stronger current-user exclusions including already-rated media.
+- Added collaborative rating boost from users with overlapping favorite genres once enough similar-user ratings exist.
+- Kept IMDb as an external identifier only and avoided IMDb scraping or unofficial recommendation APIs.
+- Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. Ruff was not available locally, so lint verification was skipped.
+
+## 2026-06-28
+
+- Implemented Stage 4 recommendations in `cinedive/app/bot/handlers/recommendations.py`, including mood preset selection, active mood-session reuse, Next, and temporary Hide callbacks.
+- Added `cinedive/app/bot/keyboards/mood.py` and expanded `MoodService`, `MediaRepository`, `UserMediaRepository`, and `RecommendationService` for 24-hour mood sessions, recommendation candidates, temporary hidden exclusions, and non-ML scoring.
+- Updated `MOOD_SESSION_TTL_HOURS` default and `.env.example` from 48 to 24 hours.
+- Updated localized English/Russian copy, README, AGENTS, and persistent docs for Stage 4 completion.
+- Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. Ruff was not available locally, so lint verification was skipped.
+
+## 2026-06-28
+
+- Implemented Stage 3 wishlist, watched, and rating flows in `cinedive/app/bot/handlers/wishlist.py` and `cinedive/app/bot/handlers/rating.py`.
+- Added reusable persisted media-card rendering in `cinedive/app/bot/media_cards.py` plus wishlist and rating inline keyboards.
+- Extended `MediaRepository` and `UserMediaRepository` to support persisted card loading, wishlist removal, watched status, ratings, and `rated_at` persistence through existing schema.
+- Updated localized English/Russian copy, README, AGENTS, and persistent docs for Stage 3 completion.
+- Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. Handler import smoke test was blocked because `aiogram` is not installed in the local Python 3.11 environment. Ruff was not available locally, so lint verification was skipped.
+
+## 2026-06-28
+
+- Updated `AGENTS.md`, `docs/INFO.md`, `docs/ROADMAP.md`, and `docs/ARCHITECTURE.md` to define soundtrack behavior as legal external music-platform links rather than audio delivery.
+- Clarified that future soundtrack integrations may use official/public APIs to resolve direct platform links, should fall back to platform search links when confidence is low, and must not download, proxy, upload, cache, or send music files.
+- Verification: documentation-only change; no runtime checks were run.
+
 ## 2026-06-28
 
 - Implemented `cinedive/app/bot/handlers/search.py` so the Search menu button starts an FSM query flow, calls `TMDBService.search_media`, renders inline result choices, fetches selected movie/TV details, and sends localized media cards with poster fallback behavior.

@@ -27,6 +27,7 @@ Technical stack for `cinedive-tg-bot`.
 
 - Telegram Bot API.
 - TMDB API.
+- Deezer public API for optional direct soundtrack link resolution.
 - PostgreSQL 16 in Docker Compose by default.
 
 ## Runtime Configuration
@@ -41,7 +42,7 @@ Primary environment variables:
 - `DEFAULT_LANGUAGE`: default TMDB language, default `en-US`.
 - `DATABASE_ECHO`: SQLAlchemy SQL echo flag.
 - `LOG_LEVEL`: Python logging level.
-- `MOOD_SESSION_TTL_HOURS`: mood session lifetime, default `48`.
+- `MOOD_SESSION_TTL_HOURS`: mood session lifetime, default `24`.
 - `BOT_MODE`: `webhook` or `polling`. Production `APP_ENV=production` requires `webhook`.
 - `WEBHOOK_BASE_URL`: public HTTPS base URL used to register the Telegram webhook.
 - `WEBHOOK_PATH`: webhook path served by aiohttp, default `/telegram/webhook`.
@@ -67,6 +68,7 @@ Docker Compose PostgreSQL variables:
 - Production deployments must set `BOT_MODE=webhook`, `APP_ENV=production`, and provide a public HTTPS `WEBHOOK_BASE_URL`.
 - Required GitHub Actions secrets are `DEPLOY_HOST`, `DEPLOY_SSH_KEY`, `POSTGRES_APP_PASSWORD`, and `POSTGRES_SUPERUSER_PASSWORD`; `DEPLOY_PORT`, `GHCR_READ_TOKEN`, and `GHCR_USERNAME` are optional.
 - The remote `.env` must contain runtime secrets such as `BOT_TOKEN`, `TMDB_API_KEY`, `WEBHOOK_BASE_URL`, and `WEBHOOK_SECRET`.
+- Soundtrack links do not require additional secrets in the current MVP.
 
 ## Verification Notes
 

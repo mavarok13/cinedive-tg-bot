@@ -17,7 +17,7 @@ class UserMedia(TimestampMixin, Base):
     __tablename__ = "user_media"
     __table_args__ = (
         CheckConstraint(
-            "status IN ('wishlist', 'watched', 'hidden', 'ignored')",
+            "status IN ('shown', 'wishlist', 'watched', 'hidden', 'ignored')",
             name="ck_user_media_status",
         ),
         CheckConstraint(
@@ -37,7 +37,13 @@ class UserMedia(TimestampMixin, Base):
     status: Mapped[str] = mapped_column(String(20), index=True, nullable=False)
     rating: Mapped[int | None] = mapped_column(Integer)
     rated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    wishlist_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    watched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    ignored_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     temporary_hidden_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_shown_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_interaction_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    shown_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     user: Mapped[User] = relationship(back_populates="media")
     media: Mapped[MediaItem] = relationship(back_populates="user_links")

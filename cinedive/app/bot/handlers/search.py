@@ -2,12 +2,12 @@ from typing import Any
 
 import httpx
 from aiogram import F, Router
-from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from cinedive.app.bot.keyboards import is_menu_button_text, media_card_keyboard, search_results_keyboard
+from cinedive.app.bot.keyboards import is_menu_button_text, search_results_keyboard
+from cinedive.app.bot.media_cards import send_media_card
 from cinedive.app.bot.states import SearchStates
 from cinedive.app.config import Settings, get_settings
 from cinedive.app.database.models import MediaItem
@@ -19,7 +19,6 @@ from cinedive.app.utils.formatting import html_escape
 router = Router(name="search")
 
 MAX_SEARCH_RESULTS = 8
-MAX_OVERVIEW_LENGTH = 650
 
 
 @router.message(F.text.func(lambda text: is_menu_button_text(text, "search")))
@@ -93,6 +92,10 @@ async def select_search_result(
         details = await _fetch_details(tmdb, result, _tmdb_language(locale, settings))
         media = await _persist_media_details(session, tmdb, details, result["media_type"], locale)
         await session.commit()
+        card = await MediaRepository(session).get_card(
+            media_id=media.id,
+            language_code=_translation_language(locale),
+        )
     except (httpx.HTTPError, RuntimeError, ValueError):
         await session.rollback()
         if isinstance(callback.message, Message):
@@ -103,8 +106,8 @@ async def select_search_result(
             await tmdb.aclose()
 
     await state.clear()
-    if isinstance(callback.message, Message):
-        await _send_media_card(callback.message, media, details, settings, locale)
+    if isinstance(callback.message, Message) and card is not None:
+        await send_media_card(callback.message, card, settings, locale)
 
 
 def _tmdb_language(locale: str, settings: Settings) -> str:
@@ -177,6 +180,7 @@ async def _persist_media_details(
         media_type=str(media_type),
         original_title=_original_title(details, str(media_type)),
         original_language=details.get("original_language"),
+        origin_country=_origin_country(details, str(media_type)),
         release_year=_release_year(details.get("release_date") or details.get("first_air_date")),
         poster_path=details.get("poster_path"),
         backdrop_path=details.get("backdrop_path"),
@@ -220,45 +224,6 @@ async def _canonical_genre_names(tmdb: TMDBService, media_type: str) -> dict[int
     }
 
 
-async def _send_media_card(
-    message: Message,
-    media: MediaItem,
-    details: dict[str, Any],
-    settings: Settings,
-    locale: str,
-) -> None:
-    text = _media_card_text(details, media.media_type, locale)
-    reply_markup = media_card_keyboard(media.id, locale)
-    poster_url = _poster_url(details.get("poster_path"), settings)
-    if poster_url is None:
-        await message.answer(text, reply_markup=reply_markup)
-        return
-
-    try:
-        await message.answer_photo(photo=poster_url, caption=text, reply_markup=reply_markup)
-    except TelegramBadRequest:
-        await message.answer(text, reply_markup=reply_markup)
-
-
-def _media_card_text(details: dict[str, Any], media_type: str, locale: str) -> str:
-    title = html_escape(_localized_title(details, media_type))
-    year = _release_year(details.get("release_date") or details.get("first_air_date"))
-    rating = details.get("vote_average")
-    vote_count = details.get("vote_count")
-    runtime = _runtime_minutes(details, media_type)
-    overview = _truncated_overview(str(details.get("overview") or ""))
-    lines = [f"<b>{title}</b>", t(locale, f"media_types.{media_type}")]
-    if year:
-        lines[-1] = f"{lines[-1]} - {year}"
-    if isinstance(rating, int | float):
-        lines.append(t(locale, "media_card.tmdb_rating", rating=f"{float(rating):.1f}", votes=vote_count or 0))
-    if runtime:
-        lines.append(t(locale, "media_card.runtime", minutes=runtime))
-    if overview:
-        lines.extend(["", html_escape(overview)])
-    return "\n".join(lines)
-
-
 def _localized_title(details: dict[str, Any], media_type: str) -> str:
     if media_type == "movie":
         return str(details.get("title") or details.get("original_title") or details.get("id"))
@@ -292,6 +257,25 @@ def _runtime_minutes(details: dict[str, Any], media_type: str) -> int | None:
     return None
 
 
+def _origin_country(details: dict[str, Any], media_type: str) -> str | None:
+    if media_type == "tv":
+        countries = details.get("origin_country")
+        if isinstance(countries, list):
+            for country in countries:
+                if isinstance(country, str) and country:
+                    return country[:8]
+
+    production_countries = details.get("production_countries")
+    if isinstance(production_countries, list):
+        for country_data in production_countries:
+            if not isinstance(country_data, dict):
+                continue
+            country = country_data.get("iso_3166_1")
+            if isinstance(country, str) and country:
+                return country[:8]
+    return None
+
+
 def _imdb_id(details: dict[str, Any]) -> str | None:
     imdb_id = details.get("imdb_id")
     if isinstance(imdb_id, str) and imdb_id:
@@ -304,15 +288,3 @@ def _imdb_id(details: dict[str, Any]) -> str | None:
 
 def _translation_language(locale: str) -> str:
     return "ru-RU" if locale == "ru" else "en-US"
-
-
-def _poster_url(poster_path: object, settings: Settings) -> str | None:
-    if not isinstance(poster_path, str) or not poster_path:
-        return None
-    return f"{settings.tmdb_image_base_url.rstrip('/')}/{poster_path.lstrip('/')}"
-
-
-def _truncated_overview(overview: str) -> str:
-    if len(overview) <= MAX_OVERVIEW_LENGTH:
-        return overview
-    return f"{overview[:MAX_OVERVIEW_LENGTH].rsplit(' ', maxsplit=1)[0]}..."

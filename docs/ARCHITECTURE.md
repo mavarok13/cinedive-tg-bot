@@ -32,9 +32,9 @@ Handlers should not contain SQLAlchemy query construction, TMDB HTTP calls, or r
 Files: `cinedive/app/services/`
 
 - `TMDBService` wraps TMDB HTTP requests.
-- `RecommendationService` is reserved for simple non-ML recommendation ranking.
+- `RecommendationService` builds non-ML recommendation batches from personalized scores, weighted buckets, and diversity caps.
 - `MoodService` owns mood-session expiration rules.
-- `SoundtrackService` builds external soundtrack search links for the MVP.
+- `SoundtrackService` builds external soundtrack links to legal music platforms for the MVP.
 
 Services should contain business decisions and use repositories for persistence as flows grow.
 
@@ -59,9 +59,12 @@ The initial schema contains:
 - `media_items`: normalized TMDB movie and TV records.
 - `media_translations`: localized titles and overviews.
 - `media_genres`: media-to-genre links.
-- `user_media`: wishlist, watched, hidden, ignored statuses and optional 1-10 rating.
+- `user_media`: wishlist, watched, hidden, ignored, shown history, interaction timestamps, shown counts, and optional 1-10 rating.
 - `user_mood_sessions`: temporary mood preferences with expiry.
-- `soundtracks`: future cache for external soundtrack links.
+- `recommendation_queue_items`: append-only active mood-session recommendation batches with bucket, score, position, shown marker, and expiry, preserving shown rows so the same media is not requeued within the same mood session.
+- `recommendation_discovery_states`: persistent per-mood-session TMDB Discover cursors keyed by media type, sort order, genre strategy, and filter strategy, including next page, attempt counts, empty-result counts, exhaustion marker, and last-used timestamp.
+- `user_preference_penalties`: expiring negative preference signals by genre, origin country, original language, and media type.
+- `soundtracks`: future cache for external soundtrack platform metadata and links.
 
 The `media_items` table has a unique constraint on `(source, external_id, media_type)`. `user_media` uses `(user_id, media_id)` as the primary key.
 
@@ -77,7 +80,11 @@ The `media_items` table has a unique constraint on `(source, external_id, media_
 8. User presses Search and `search.py` asks for a query through `SearchStates`.
 9. Search delegates TMDB lookup and detail fetches to `TMDBService`.
 10. Selected results are persisted through `MediaRepository` and `GenreRepository` as media items, translations, and media-genre links.
-11. The handler renders a localized media card with poster, metadata, overview, and existing action callbacks.
+11. The handler renders a localized media card with poster, media type/year, country, genres, rating/runtime metadata, overview, and existing action callbacks.
+12. Wishlist callbacks store or remove `user_media` rows with `wishlist` status and can reopen persisted media cards.
+13. Watched and rating callbacks use `RatingStates` to ask for a 1-10 rating and persist `watched`, `rating`, and `rated_at` through `UserMediaRepository`.
+14. Recommend checks for an active 24-hour mood session, asks for a mood preset when needed, and renders the next unshown item from a persisted recommendation queue.
+15. Next advances to the next queued item without adding a strong negative signal; Hide temporarily excludes the current item and stores expiring feature penalties.
 
 ## MVP Data Flow
 
@@ -86,21 +93,47 @@ Search flow:
 1. Handler asks for query and delegates to `TMDBService.search_media`.
 2. User chooses a result from inline buttons backed by FSM state.
 3. Details and canonical TMDB genre names are fetched through `TMDBService`.
-4. Media item, localized translation, and genre links are persisted through repositories.
-5. Handler renders a media card with poster and action callbacks.
+4. Media item, localized translation, origin country, and genre links are persisted through repositories.
+5. Handler renders a media card with poster, country, genres, and action callbacks.
+
+Wishlist and rating flow:
+
+1. Media-card callbacks save wishlist status or start the rating flow.
+2. The Wishlist menu lists saved cards from persisted media data and lets users reopen or remove items.
+3. Watched/rate callbacks ask for a 1-10 rating using FSM state and inline rating buttons.
+4. `UserMediaRepository` persists wishlist/watched status, rating, and `rated_at`.
 
 Recommendation flow:
 
 1. Handler checks active mood session through mood repository/service.
-2. If needed, handler asks temporary mood questions.
-3. `RecommendationService` loads favorite genres, excludes watched/hidden media, and ranks candidates with a simple score.
-4. Handler renders the next media card.
+2. If needed, handler asks a temporary mood preset question and stores the selected mood separately from favorite genres.
+3. Handler refills an exhausted active queue by delegating strategy construction and scoring to `RecommendationService`, then sourcing candidates from TMDB Discover through persistent per-session cursor rows.
+4. Discovered candidates are fetched through `TMDBService`, persisted as normal media items/translations/genre links, and then loaded from `MediaRepository`.
+5. `MediaRepository` excludes watched, ignored, hidden, already-rated, recently shown, and same-mood-session queued media.
+6. `RecommendationService` scores candidates from favorite genres, mood genres, normalized TMDB rating, vote-count confidence, similar-user ratings, similar-user wishlist signals, preference penalties, and repetition penalties.
+7. The service composes a queue from high-confidence, medium-confidence, and exploration buckets using weighted randomness plus diversity caps for country, language, and media type.
+8. Queue rows are appended in `recommendation_queue_items`; the handler atomically claims the next unshown row, marks it and `user_media.last_shown_at` when a card is emitted, and refills only when no unshown rows remain.
+9. Handler renders the next media card.
+
+Implemented recommendation redesign:
+
+1. Mood sessions are the temporary feed context. Opening a new mood session expires previous active sessions and clears the user's queue.
+2. `recommendation_queue_items` stores active batches for a user and mood session, including media, position, bucket, score, shown marker, creation time, and expiry. Refill appends new rows instead of deleting shown rows, so same-session repeats remain excluded.
+3. Long-lived history stays in `user_media`, including shown history, watched/rated state, wishlist timestamps, hidden/ignored state, and `last_shown_at`.
+4. `user_preference_penalties` stores expiring negative preference signals by genre, origin country, original language, and media type.
+5. Batch generation scores candidates from favorite genres, mood genres, normalized TMDB rating, vote-count confidence, similar-user ratings, similar-user wishlist signals, and preference penalties.
+6. Candidate pools exclude watched, rated, ignored, currently hidden, recently shown, same-session queued/shown media, and low-quality media cards without posters or usable localized/fallback descriptions whenever practical.
+7. Queue composition uses bucketed weighted randomness: mostly high-confidence items, a smaller medium-confidence share, and a small exploration share.
+8. Batch generation enforces diversity caps so one country, original language, or media type cannot dominate the feed.
+9. `recommendation_discovery_states` keeps TMDB discovery moving forward across repeated refills by rotating non-exhausted strategy cursors over pages, sort orders, genre scopes, media types, and language/country filters before falling back to local persisted candidates.
 
 Soundtrack flow:
 
 1. Handler resolves the current media title.
-2. `SoundtrackService` returns an external YouTube search URL.
-3. No music files are downloaded or sent.
+2. `SoundtrackService` queries Deezer public API for a confident direct soundtrack match.
+3. If a direct match is unavailable, `SoundtrackService` falls back to legal platform search links for Deezer, YouTube Music, Spotify, Apple Music, and Yandex Music.
+4. `SoundtrackRepository` caches only metadata and external URLs in `soundtracks`.
+5. No music files are downloaded, proxied, uploaded, cached, or sent through Telegram.
 
 ## Deployment Flow
 

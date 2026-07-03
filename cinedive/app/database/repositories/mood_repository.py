@@ -44,3 +44,13 @@ class MoodSessionRepository:
         self._session.add(mood_session)
         await self._session.flush()
         return mood_session
+
+    async def expire_active(self, *, user_id: int, now: datetime) -> None:
+        statement = select(UserMoodSession).where(
+            UserMoodSession.user_id == user_id,
+            UserMoodSession.expires_at > now,
+        )
+        mood_sessions = await self._session.scalars(statement)
+        for mood_session in mood_sessions:
+            mood_session.expires_at = now
+        await self._session.flush()

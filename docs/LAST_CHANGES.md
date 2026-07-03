@@ -1,5 +1,81 @@
 # Last Changes
 
+## 2026-07-03
+
+- Added genres and origin country to shared media-card rendering, so selected search results and recommendation cards both show the extra metadata from persisted TMDB details.
+
+Verification: `python -m compileall cinedive alembic` passed. `git diff --check` reported only Git line-ending normalization warnings and no whitespace errors. `python -m ruff check .` was skipped because Ruff is not installed in the available Python environment.
+
+## 2026-07-03
+
+- Implemented true endless discovery refills for recommendation mood sessions with persistent `recommendation_discovery_states`, cursor-driven TMDB Discover strategy rotation, append-only same-session queues, atomic next-item claiming, and local fallback after bounded discovery expansion.
+- Updated recommendation no-candidates copy to suggest changing mood or favorite genres when fresh discovery is exhausted.
+
+Verification: `python -m compileall cinedive alembic` passed. `git diff --check` reported only existing Git line-ending normalization warnings and no whitespace errors. `ruff check .` and `python -m ruff check .` were skipped because Ruff is not installed in the available Python environment.
+
+## 2026-07-03
+
+- Shortened the Alembic revision ID for the recommendation feed migration from `0002_recommendation_feed_redesign` to `0002_recommendation_feed` so it fits Alembic's default `alembic_version.version_num VARCHAR(32)` column during production deploys.
+
+Verification: `python -m compileall cinedive alembic` and `git diff --check` passed.
+
+## 2026-07-02
+
+- Implemented Stage 6 recommendation feed redesign with mood-session-bound queues, shown-history memory, expiring preference penalties, bucketed weighted batch selection, diversity caps, and poster/overview candidate-quality filtering.
+- Added Alembic migration `0002_recommendation_feed` for queue rows, preference penalties, origin-country metadata, and user-media interaction timestamps/counters.
+- Changed recommendation Next to remain neutral while Hide now temporarily excludes the exact item and adds feature penalties.
+
+Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. `py -3.11 -m ruff check .` was skipped because Ruff is not installed in the local Python 3.11 environment.
+
+## 2026-07-02
+
+- Documented the planned recommendation feed redesign: mood-session-bound queues, batch buckets, shown-history memory, decaying preference penalties, diversity caps, and candidate-quality filtering for posters/descriptions.
+- Added `docs/RECOMMENDATION_REDESIGN_PROMPT.md` as an English implementation prompt for a future AI coding task.
+
+Verification: documentation-only change; no runtime checks were run.
+
+## 2026-06-28
+
+- Implemented Stage 5 soundtrack platform links.
+- Added Deezer public API direct soundtrack matching, legal platform search-link fallbacks, soundtrack URL metadata caching, and localized soundtrack responses.
+- Added setup instructions for Telegram, TMDB, local run, production webhook, GitHub Actions deploy secrets, and soundtrack API expectations.
+- Confirmed the current soundtrack MVP requires no additional music-platform API secrets and never downloads, proxies, uploads, caches, or sends audio files.
+
+Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. `py -3.11 -m ruff check .` was skipped because Ruff is not installed in the local Python 3.11 environment.
+
+## 2026-06-28
+
+- Implemented Stage 4.5 hybrid recommendation expansion.
+- Added TMDB Discover candidate sourcing, persisted discovered media before ranking, stronger exclusion of watched/ignored/hidden/already-rated media, and collaborative rating boost from similar users when enough ratings exist.
+- Kept IMDb as an external identifier only; recommendations continue to use TMDB/public app data and do not scrape IMDb or unofficial APIs.
+
+Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. `py -3.11 -m ruff check .` was skipped because Ruff is not installed in the local Python 3.11 environment.
+
+## 2026-06-28
+
+- Implemented Stage 4 mood sessions and simple recommendations.
+- Added 24-hour mood presets, active mood session persistence, recommendation candidate loading from persisted media, non-ML scoring, Next, and temporary Hide behavior.
+- Updated `MOOD_SESSION_TTL_HOURS` default/docs from 48 to 24 hours to match the roadmap.
+- Updated English/Russian UI copy and persistent docs for Stage 4 completion.
+
+Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. `py -3.11 -m ruff check .` was skipped because Ruff is not installed in the local Python 3.11 environment.
+
+## 2026-06-28
+
+- Implemented Stage 3 wishlist, watched, and rating flows.
+- Added reusable persisted media-card rendering, wishlist/rating inline keyboards, wishlist add/list/open/remove handlers, and watched/rating FSM handlers.
+- Extended repositories to load persisted media-card data, delete user-media rows, and save watched ratings with `rated_at`.
+- Updated English/Russian UI copy and persistent docs for Stage 3 completion while preserving soundtrack platform-link guidance.
+
+Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. Handler import smoke test was blocked because `aiogram` is not installed in the local Python 3.11 environment. `py -3.11 -m ruff check .` was skipped because Ruff is not installed in the local Python 3.11 environment.
+
+## 2026-06-28
+
+- Clarified soundtrack guidance so future work returns links to legal external music platforms, allows official/public API link resolution, and falls back to platform search links when needed.
+- Documented that soundtrack flows must not download, proxy, upload, cache, or send music files and may cache only metadata and external URLs.
+
+Verification: documentation-only change; no runtime checks were run.
+
 ## 2026-06-28
 
 - Implemented Stage 2 TMDB search: users can submit a query, choose movie or TV results, fetch details, and receive localized media cards with posters and action buttons.
