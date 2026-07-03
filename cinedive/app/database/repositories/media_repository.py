@@ -107,10 +107,14 @@ class MediaRepository:
         max_runtime_minutes: int | None = None,
         limit: int = 100,
         shown_cooldown_days: int = 30,
+        exclude_media_ids: set[int] | None = None,
     ) -> list[RecommendationCandidate]:
+        exclude_media_ids = exclude_media_ids or set()
         statement = select(MediaItem)
         if content_type in {"movie", "tv"}:
             statement = statement.where(MediaItem.media_type == content_type)
+        if exclude_media_ids:
+            statement = statement.where(MediaItem.id.not_in(exclude_media_ids))
         if max_runtime_minutes is not None:
             statement = statement.where(
                 (MediaItem.runtime_minutes.is_(None))
@@ -226,6 +230,22 @@ class MediaRepository:
             UserMedia.media_id == media_id,
         )
         return await self._session.scalar(statement)
+
+    async def existing_external_ids(
+        self,
+        *,
+        source: str,
+        media_type: str,
+        external_ids: set[int],
+    ) -> dict[int, int]:
+        if not external_ids:
+            return {}
+        statement = select(MediaItem.external_id, MediaItem.id).where(
+            MediaItem.source == source,
+            MediaItem.media_type == media_type,
+            MediaItem.external_id.in_(external_ids),
+        )
+        return {external_id: media_id for external_id, media_id in await self._session.execute(statement)}
 
     async def replace_genres(self, *, media_id: int, genre_ids: list[int]) -> None:
         await self._session.execute(delete(MediaGenre).where(MediaGenre.media_id == media_id))

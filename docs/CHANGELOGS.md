@@ -2,6 +2,14 @@
 
 ## 2026-07-03
 
+- Added `alembic/versions/0003_discovery_state.py` and the `RecommendationDiscoveryState` model for persistent per-mood-session TMDB Discover cursors keyed by media type, sort order, genre strategy, and filter strategy.
+- Updated recommendation repositories so queue refills append to `recommendation_queue_items`, preserve shown rows, exclude same-session queued/shown media, and atomically claim the next unshown item with row locking.
+- Expanded recommendation discovery to rotate bounded TMDB pages across popularity, vote count, vote average, release-date/air-date, genre, media-type, language, and country strategies before falling back to persisted local candidates.
+- Updated recommendation no-candidates locale copy and persistent docs for the endless discovery feed behavior.
+- Verification: `python -m compileall cinedive alembic` passed. `git diff --check` reported only Git line-ending normalization warnings and no whitespace errors. Ruff was not installed locally, so lint verification was skipped.
+
+## 2026-07-03
+
 - Renamed `alembic/versions/0002_recommendation_feed_redesign.py` to `alembic/versions/0002_recommendation_feed.py` and shortened its `revision` value to avoid PostgreSQL truncation errors when Alembic updates `alembic_version.version_num`.
 - Verification: `python -m compileall cinedive alembic` and `git diff --check` passed.
 

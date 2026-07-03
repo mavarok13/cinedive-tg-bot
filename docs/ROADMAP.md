@@ -77,6 +77,8 @@ Status: complete.
 - Exclude low-quality recommendation cards without posters or usable descriptions, plus watched, rated, ignored, hidden, and recently shown media.
 - Add diversity caps so a single country, original language, genre cluster, or media type cannot dominate a batch.
 - Make Hide add decaying feature penalties while Next remains neutral or only weak negative feedback.
+- Add persistent discovery cursor state so exhausted queues refill by advancing TMDB Discover pages and rotating strategy/filter combinations instead of rebuilding the same narrow pool.
+- Preserve shown queue rows and exclude all media already queued or shown in the same mood session to prevent same-session repeats.
 
 ## Later: Party/Match System
 

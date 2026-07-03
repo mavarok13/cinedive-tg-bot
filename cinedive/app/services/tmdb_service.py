@@ -55,6 +55,10 @@ class TMDBService:
         max_runtime_minutes: int | None,
         page: int = 1,
         sort_by: str = "vote_average.desc",
+        vote_count_gte: int = 100,
+        vote_average_gte: float = 6.0,
+        original_language: str | None = None,
+        origin_country: str | None = None,
     ) -> list[dict[str, Any]]:
         if media_type not in {"movie", "tv"}:
             raise ValueError("media_type must be 'movie' or 'tv'.")
@@ -66,14 +70,18 @@ class TMDBService:
             "include_video": "false",
             "page": page,
             "sort_by": sort_by,
-            "vote_average.gte": 6.0,
-            "vote_count.gte": 100,
+            "vote_average.gte": vote_average_gte,
+            "vote_count.gte": vote_count_gte,
             date_key: "1990-01-01",
         }
         if genre_ids:
             params["with_genres"] = "|".join(str(genre_id) for genre_id in sorted(genre_ids))
         if max_runtime_minutes is not None:
             params["with_runtime.lte"] = max_runtime_minutes
+        if original_language:
+            params["with_original_language"] = original_language
+        if origin_country:
+            params["with_origin_country"] = origin_country
 
         data = await self._get(f"/discover/{media_type}", params=params)
         return list(data.get("results", []))

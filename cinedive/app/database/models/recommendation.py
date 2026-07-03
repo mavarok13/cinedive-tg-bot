@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import CheckConstraint, DateTime, Float, ForeignKey, Integer, String, UniqueConstraint, func
+from sqlalchemy import Boolean, CheckConstraint, DateTime, Float, ForeignKey, Integer, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from cinedive.app.database.base import Base, TimestampMixin
@@ -49,6 +49,42 @@ class RecommendationQueueItem(Base):
     user: Mapped[User] = relationship()
     mood_session: Mapped[UserMoodSession] = relationship()
     media: Mapped[MediaItem] = relationship()
+
+
+class RecommendationDiscoveryState(TimestampMixin, Base):
+    __tablename__ = "recommendation_discovery_states"
+    __table_args__ = (
+        CheckConstraint(
+            "media_type IN ('movie', 'tv')",
+            name="ck_recommendation_discovery_media_type",
+        ),
+        UniqueConstraint(
+            "mood_session_id",
+            "media_type",
+            "sort_by",
+            "genre_key",
+            "filter_key",
+            name="uq_recommendation_discovery_strategy",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False)
+    mood_session_id: Mapped[int] = mapped_column(
+        ForeignKey("user_mood_sessions.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    media_type: Mapped[str] = mapped_column(String(16), nullable=False)
+    sort_by: Mapped[str] = mapped_column(String(64), nullable=False)
+    genre_key: Mapped[str] = mapped_column(String(256), nullable=False)
+    filter_key: Mapped[str] = mapped_column(String(256), nullable=False)
+    next_page: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    attempt_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    empty_result_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    exhausted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+
+    user: Mapped[User] = relationship()
+    mood_session: Mapped[UserMoodSession] = relationship()
 
 
 class UserPreferencePenalty(TimestampMixin, Base):

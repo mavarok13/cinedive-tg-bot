@@ -61,7 +61,8 @@ The initial schema contains:
 - `media_genres`: media-to-genre links.
 - `user_media`: wishlist, watched, hidden, ignored, shown history, interaction timestamps, shown counts, and optional 1-10 rating.
 - `user_mood_sessions`: temporary mood preferences with expiry.
-- `recommendation_queue_items`: active mood-session recommendation batches with bucket, score, position, shown marker, and expiry.
+- `recommendation_queue_items`: append-only active mood-session recommendation batches with bucket, score, position, shown marker, and expiry, preserving shown rows so the same media is not requeued within the same mood session.
+- `recommendation_discovery_states`: persistent per-mood-session TMDB Discover cursors keyed by media type, sort order, genre strategy, and filter strategy, including next page, attempt counts, empty-result counts, exhaustion marker, and last-used timestamp.
 - `user_preference_penalties`: expiring negative preference signals by genre, origin country, original language, and media type.
 - `soundtracks`: future cache for external soundtrack platform metadata and links.
 
@@ -106,24 +107,25 @@ Recommendation flow:
 
 1. Handler checks active mood session through mood repository/service.
 2. If needed, handler asks a temporary mood preset question and stores the selected mood separately from favorite genres.
-3. Handler seeds candidates from TMDB Discover using favorite genres, mood genres, content type, rating, vote count, runtime, and release-date filters.
+3. Handler refills an exhausted active queue by delegating strategy construction and scoring to `RecommendationService`, then sourcing candidates from TMDB Discover through persistent per-session cursor rows.
 4. Discovered candidates are fetched through `TMDBService`, persisted as normal media items/translations/genre links, and then loaded from `MediaRepository`.
-5. `MediaRepository` excludes watched, ignored, hidden, and already-rated media.
+5. `MediaRepository` excludes watched, ignored, hidden, already-rated, recently shown, and same-mood-session queued media.
 6. `RecommendationService` scores candidates from favorite genres, mood genres, normalized TMDB rating, vote-count confidence, similar-user ratings, similar-user wishlist signals, preference penalties, and repetition penalties.
 7. The service composes a queue from high-confidence, medium-confidence, and exploration buckets using weighted randomness plus diversity caps for country, language, and media type.
-8. Queue rows are persisted in `recommendation_queue_items`; the handler marks queue rows and `user_media.last_shown_at` when a card is emitted.
+8. Queue rows are appended in `recommendation_queue_items`; the handler atomically claims the next unshown row, marks it and `user_media.last_shown_at` when a card is emitted, and refills only when no unshown rows remain.
 9. Handler renders the next media card.
 
 Implemented recommendation redesign:
 
 1. Mood sessions are the temporary feed context. Opening a new mood session expires previous active sessions and clears the user's queue.
-2. `recommendation_queue_items` stores active batches for a user and mood session, including media, position, bucket, score, shown marker, creation time, and expiry.
+2. `recommendation_queue_items` stores active batches for a user and mood session, including media, position, bucket, score, shown marker, creation time, and expiry. Refill appends new rows instead of deleting shown rows, so same-session repeats remain excluded.
 3. Long-lived history stays in `user_media`, including shown history, watched/rated state, wishlist timestamps, hidden/ignored state, and `last_shown_at`.
 4. `user_preference_penalties` stores expiring negative preference signals by genre, origin country, original language, and media type.
 5. Batch generation scores candidates from favorite genres, mood genres, normalized TMDB rating, vote-count confidence, similar-user ratings, similar-user wishlist signals, and preference penalties.
-6. Candidate pools exclude watched, rated, ignored, currently hidden, recently shown, and low-quality media cards without posters or usable localized/fallback descriptions whenever practical.
+6. Candidate pools exclude watched, rated, ignored, currently hidden, recently shown, same-session queued/shown media, and low-quality media cards without posters or usable localized/fallback descriptions whenever practical.
 7. Queue composition uses bucketed weighted randomness: mostly high-confidence items, a smaller medium-confidence share, and a small exploration share.
 8. Batch generation enforces diversity caps so one country, original language, or media type cannot dominate the feed.
+9. `recommendation_discovery_states` keeps TMDB discovery moving forward across repeated refills by rotating non-exhausted strategy cursors over pages, sort orders, genre scopes, media types, and language/country filters before falling back to local persisted candidates.
 
 Soundtrack flow:
 

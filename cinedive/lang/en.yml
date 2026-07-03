@@ -48,7 +48,7 @@ media_types:
   tv: "TV show"
 
 recommendations:
-  no_candidates: "I do not have enough saved media to recommend yet. Search and open a few movie or TV cards first."
+  no_candidates: "I could not find a fresh match for this mood right now. Try changing the mood or updating your favorite genres."
   hidden: "Hidden for this mood session."
 
 mood:

@@ -2,6 +2,13 @@
 
 ## 2026-07-03
 
+- Implemented true endless discovery refills for recommendation mood sessions with persistent `recommendation_discovery_states`, cursor-driven TMDB Discover strategy rotation, append-only same-session queues, atomic next-item claiming, and local fallback after bounded discovery expansion.
+- Updated recommendation no-candidates copy to suggest changing mood or favorite genres when fresh discovery is exhausted.
+
+Verification: `python -m compileall cinedive alembic` passed. `git diff --check` reported only existing Git line-ending normalization warnings and no whitespace errors. `ruff check .` and `python -m ruff check .` were skipped because Ruff is not installed in the available Python environment.
+
+## 2026-07-03
+
 - Shortened the Alembic revision ID for the recommendation feed migration from `0002_recommendation_feed_redesign` to `0002_recommendation_feed` so it fits Alembic's default `alembic_version.version_num VARCHAR(32)` column during production deploys.
 
 Verification: `python -m compileall cinedive alembic` and `git diff --check` passed.
