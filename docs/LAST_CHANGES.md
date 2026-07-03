@@ -1,9 +1,15 @@
 # Last Changes
 
+## 2026-07-03
+
+- Shortened the Alembic revision ID for the recommendation feed migration from `0002_recommendation_feed_redesign` to `0002_recommendation_feed` so it fits Alembic's default `alembic_version.version_num VARCHAR(32)` column during production deploys.
+
+Verification: `python -m compileall cinedive alembic` and `git diff --check` passed.
+
 ## 2026-07-02
 
 - Implemented Stage 6 recommendation feed redesign with mood-session-bound queues, shown-history memory, expiring preference penalties, bucketed weighted batch selection, diversity caps, and poster/overview candidate-quality filtering.
-- Added Alembic migration `0002_recommendation_feed_redesign` for queue rows, preference penalties, origin-country metadata, and user-media interaction timestamps/counters.
+- Added Alembic migration `0002_recommendation_feed` for queue rows, preference penalties, origin-country metadata, and user-media interaction timestamps/counters.
 - Changed recommendation Next to remain neutral while Hide now temporarily excludes the exact item and adds feature penalties.
 
 Verification: `py -3.11 -m compileall cinedive alembic`, `pyproject.toml` TOML parse check, and `git diff --check` passed. `py -3.11 -m ruff check .` was skipped because Ruff is not installed in the local Python 3.11 environment.

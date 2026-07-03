@@ -1,9 +1,14 @@
 # Changelogs
 
+## 2026-07-03
+
+- Renamed `alembic/versions/0002_recommendation_feed_redesign.py` to `alembic/versions/0002_recommendation_feed.py` and shortened its `revision` value to avoid PostgreSQL truncation errors when Alembic updates `alembic_version.version_num`.
+- Verification: `python -m compileall cinedive alembic` and `git diff --check` passed.
+
 ## 2026-07-02
 
 - Implemented Stage 6 Recommendation Feed Redesign in `cinedive/app/bot/handlers/recommendations.py`, `cinedive/app/services/recommendation_service.py`, database models, and repositories.
-- Added `alembic/versions/0002_recommendation_feed_redesign.py` with `recommendation_queue_items`, `user_preference_penalties`, `media_items.origin_country`, and user-media shown/interaction timestamp fields.
+- Added `alembic/versions/0002_recommendation_feed.py` with `recommendation_queue_items`, `user_preference_penalties`, `media_items.origin_country`, and user-media shown/interaction timestamp fields.
 - Recommendation queues are now tied to active mood sessions, rebuilt when exhausted, composed from high/medium/exploration weighted buckets, and filtered for watched/rated/ignored/hidden/recently shown or low-quality cards.
 - Hide now adds expiring feature penalties for genre, origin country, original language, and media type; Next only advances the queue.
 - Updated `AGENTS.md`, `docs/INFO.md`, `docs/ARCHITECTURE.md`, and `docs/ROADMAP.md` from planned redesign to implemented behavior.
