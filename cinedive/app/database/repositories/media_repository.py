@@ -15,6 +15,8 @@ class MediaCardData:
     overview: str | None
     release_year: int | None
     poster_path: str | None
+    origin_country: str | None
+    genres: tuple[tuple[int, str], ...]
     runtime_minutes: int | None
     tmdb_rating: float | None
     tmdb_vote_count: int | None
@@ -81,6 +83,8 @@ class MediaRepository:
             overview=overview,
             release_year=media.release_year,
             poster_path=media.poster_path,
+            origin_country=media.origin_country,
+            genres=await self._genre_options(media_id=media.id),
             runtime_minutes=media.runtime_minutes,
             tmdb_rating=media.tmdb_rating,
             tmdb_vote_count=media.tmdb_vote_count,
@@ -223,6 +227,15 @@ class MediaRepository:
         statement = select(Genre.external_id).join(MediaGenre).where(MediaGenre.media_id == media_id)
         result = await self._session.scalars(statement)
         return set(result)
+
+    async def _genre_options(self, *, media_id: int) -> tuple[tuple[int, str], ...]:
+        statement = (
+            select(Genre.external_id, Genre.name)
+            .join(MediaGenre)
+            .where(MediaGenre.media_id == media_id)
+            .order_by(Genre.name)
+        )
+        return tuple((external_id, name) for external_id, name in await self._session.execute(statement))
 
     async def _get_user_media(self, *, user_id: int, media_id: int) -> UserMedia | None:
         statement = select(UserMedia).where(

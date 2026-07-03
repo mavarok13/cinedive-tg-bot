@@ -2,6 +2,12 @@
 
 ## 2026-07-03
 
+- Added genres and origin country to shared media-card rendering, so selected search results and recommendation cards both show the extra metadata from persisted TMDB details.
+
+Verification: `python -m compileall cinedive alembic` passed. `git diff --check` reported only Git line-ending normalization warnings and no whitespace errors. `python -m ruff check .` was skipped because Ruff is not installed in the available Python environment.
+
+## 2026-07-03
+
 - Implemented true endless discovery refills for recommendation mood sessions with persistent `recommendation_discovery_states`, cursor-driven TMDB Discover strategy rotation, append-only same-session queues, atomic next-item claiming, and local fallback after bounded discovery expansion.
 - Updated recommendation no-candidates copy to suggest changing mood or favorite genres when fresh discovery is exhausted.
 

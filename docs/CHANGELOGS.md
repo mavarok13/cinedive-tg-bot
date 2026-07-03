@@ -2,6 +2,11 @@
 
 ## 2026-07-03
 
+- Updated `MediaCardData`, `MediaRepository.get_card`, shared media-card rendering, and EN/RU locale labels so both search-selected media cards and recommendation cards display persisted genres and origin country.
+- Verification: `python -m compileall cinedive alembic` passed. `git diff --check` reported only Git line-ending normalization warnings and no whitespace errors. Ruff was not installed locally, so lint verification was skipped.
+
+## 2026-07-03
+
 - Added `alembic/versions/0003_discovery_state.py` and the `RecommendationDiscoveryState` model for persistent per-mood-session TMDB Discover cursors keyed by media type, sort order, genre strategy, and filter strategy.
 - Updated recommendation repositories so queue refills append to `recommendation_queue_items`, preserve shown rows, exclude same-session queued/shown media, and atomically claim the next unshown item with row locking.
 - Expanded recommendation discovery to rotate bounded TMDB pages across popularity, vote count, vote average, release-date/air-date, genre, media-type, language, and country strategies before falling back to persisted local candidates.

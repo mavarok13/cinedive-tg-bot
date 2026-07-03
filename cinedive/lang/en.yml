@@ -102,6 +102,8 @@ media_card:
   next: "🎲 Next"
   soundtrack: "🎵 Soundtrack"
   tmdb_rating: "TMDB: {rating}/10 ({votes} votes)"
+  genres: "Genres: {genres}"
+  country: "Country: {country}"
   runtime: "Runtime: {minutes} min"
 
 genres:

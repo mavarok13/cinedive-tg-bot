@@ -2,6 +2,7 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message
 
 from cinedive.app.bot.keyboards import media_card_keyboard
+from cinedive.app.bot.keyboards.genres import genre_display_name
 from cinedive.app.config import Settings
 from cinedive.app.database.repositories.media_repository import MediaCardData
 from cinedive.app.localization import t
@@ -35,6 +36,11 @@ def media_card_text(card: MediaCardData, locale: str) -> str:
     lines = [f"<b>{html_escape(card.title)}</b>", t(locale, f"media_types.{card.media_type}")]
     if card.release_year:
         lines[-1] = f"{lines[-1]} - {card.release_year}"
+    if card.origin_country:
+        lines.append(t(locale, "media_card.country", country=html_escape(card.origin_country)))
+    genres = _genre_names(card, locale)
+    if genres:
+        lines.append(t(locale, "media_card.genres", genres=html_escape(", ".join(genres))))
     if card.tmdb_rating is not None:
         lines.append(
             t(
@@ -62,3 +68,10 @@ def _truncated_overview(overview: str) -> str:
     if len(overview) <= MAX_OVERVIEW_LENGTH:
         return overview
     return f"{overview[:MAX_OVERVIEW_LENGTH].rsplit(' ', maxsplit=1)[0]}..."
+
+
+def _genre_names(card: MediaCardData, locale: str) -> list[str]:
+    names: list[str] = []
+    for external_id, fallback_name in card.genres:
+        names.append(genre_display_name(locale, external_id) or fallback_name)
+    return names

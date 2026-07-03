@@ -13,7 +13,7 @@
 - Main menu buttons exist for Recommend, Wishlist, Search, and Profile.
 - Profile displays stored favorite genres.
 - Search is wired to TMDB multi-search for movies and TV shows.
-- Selecting a search result fetches TMDB details, persists the media item, localized translation, and genre links, then renders a media card with poster and action buttons.
+- Selecting a search result fetches TMDB details, persists the media item, localized translation, genre links, and origin country, then renders a media card with poster, genres, country, and action buttons.
 - Users can add media cards to a wishlist, list wishlist items, reopen saved cards, and remove items.
 - Users can mark media as watched and save a 1-10 rating with `rated_at`.
 - Users can choose a temporary 24-hour mood preset and receive non-ML recommendations from mood-session-bound queues built from saved and cursor-driven TMDB Discover-sourced media.
